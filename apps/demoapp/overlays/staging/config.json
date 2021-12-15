@@ -1,10 +1,10 @@
 {
     "appName": "demoapp",
     "userGivenName": "demoapp",
-    "destNamespace": "default",
+    "destNamespace": "staging",
     "destServer": "https://kubernetes.default.svc",
     "srcPath": "apps/demoapp/overlays/staging",
     "srcRepoURL": "https://github.com/armenr/argocd-autopilot.git",
-    "srcTargetRevision": "",
+    "srcTargetRevision": "staging",
     "labels": null
 }

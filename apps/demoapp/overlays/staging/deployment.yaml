@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: simple-deployment-staging
+  name: simple-deployment-sat
 spec:
   replicas: 1
   selector:

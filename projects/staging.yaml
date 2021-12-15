@@ -7,7 +7,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
   creationTimestamp: null
   name: staging
-  namespace: argocd
+  namespace: staging
 spec:
   clusterResourceWhitelist:
   - group: '*'
@@ -31,7 +31,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
   creationTimestamp: null
   name: staging
-  namespace: argocd
+  namespace: staging
 spec:
   generators:
   - git:
@@ -72,7 +72,7 @@ spec:
         app.kubernetes.io/managed-by: argocd-autopilot
         app.kubernetes.io/name: '{{ appName }}'
       name: staging-{{ userGivenName }}
-      namespace: argocd
+      namespace: staging
     spec:
       destination:
         namespace: '{{ destNamespace }}'
