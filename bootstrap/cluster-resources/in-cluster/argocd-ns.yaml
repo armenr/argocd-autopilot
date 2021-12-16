@@ -3,7 +3,7 @@ kind: Namespace
 metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false
-  creationTimestamp: null
+  # creationTimestamp: null
   name: argocd
 spec: {}
 status: {}
@@ -15,7 +15,7 @@ kind: Namespace
 metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false
-  creationTimestamp: null
+  # creationTimestamp: null
   name: sealed-secrets
 spec: {}
 status: {}
@@ -27,7 +27,7 @@ kind: Namespace
 metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false
-  creationTimestamp: null
+  # creationTimestamp: null
   name: cert-manager
 spec: {}
 status: {}
@@ -39,7 +39,7 @@ kind: Namespace
 metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false
-  creationTimestamp: null
+  # creationTimestamp: null
   name: crossplane-system
 spec: {}
 status: {}
@@ -51,7 +51,7 @@ kind: Namespace
 metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false
-  creationTimestamp: null
+  # creationTimestamp: null
   name: staging
 spec: {}
 status: {}

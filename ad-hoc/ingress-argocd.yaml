@@ -1,0 +1,55 @@
+# apiVersion: traefik.containo.us/v1alpha1
+# kind: IngressRoute
+# metadata:
+#   name: argocd-server
+#   namespace: argocd
+# spec:
+#   addPrefix:
+#     prefix: /deployments
+#   entryPoints:
+#     - websecure
+#   routes:
+#     - kind: Rule
+#       match: Host(`kubernetes.docker.internal`) && (Path(`/argocd`) || PathPrefix(`/argocd/`)
+#       priority: 10
+#       services:
+#         - name: argocd-server
+#           port: 7070
+#     # - kind: Rule
+#     #   match: Host(`kubernetes.docker.internal`) && Headers(`Content-Type`, `application/grpc`)
+#     #   priority: 11
+#     #   services:
+#     #     - name: argocd-server
+#     #       port: 80
+#     #       scheme: h2c
+#   # tls:
+#   #   certResolver: default
+#   #   options: {}
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd-server
+  namespace: argocd
+spec:
+  addPrefix:
+    prefix: /argocd
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`kubernetes.docker.internal`) && PathPrefix(`/argocd`)
+      priority: 10
+      services:
+        - name: argocd-server
+          port: 7070
+    - kind: Rule
+      match: Host(`kubernetes.docker.internal`) && Headers(`Content-Type`, `application/grpc`)
+      priority: 11
+      services:
+        - name: argocd-server
+          port: 7070
+          scheme: h2c
+  tls:
+    certResolver: default
+    options: {}

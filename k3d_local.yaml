@@ -17,16 +17,23 @@ options:
       - arg: --tls-san=kube.armenr.ngrok.io
         nodeFilters:
           - server:*
+      # - arg: --no-deploy=traefik
   kubeconfig:
     updateDefaultKubeconfig: true
     switchCurrentContext: true
 ports:
-  - port: 8080:80
+  - port: 80:7070       # Maps localhost 80 to port 80 on LB
     nodeFilters:
-      - loadbalancer
+      - loadbalancer  # Maps localhost https:// to port 443 on LB
   - port: 443:443
     nodeFilters:
       - loadbalancer
+#   - port: 8080:8080  # Maps localhost https:// to port 443 on LB
+#     nodeFilters:
+#       - loadbalancer
+  # - port: 2746:2746     # Argo Workflows
+  #   nodeFilters:
+  #     - loadbalancer
 # volumes:
 #   - volume: ~/k3d_volume:/opt
 #     nodeFilters:
