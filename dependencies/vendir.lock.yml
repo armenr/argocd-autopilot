@@ -1,0 +1,15 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - git:
+      commitTitle: 'Merge pull request #30903 from tengqm/update-feature-gates...'
+      sha: 503f8a478f3078ecb48446f2b6e079f71553d3a2
+      tags:
+      - snapshot-initial-v1.23-104-g503f8a478
+    path: nginx
+  - helmChart:
+      appVersion: v2.1.0
+      version: 2.3.1
+    path: loki-stack
+  path: deploy/synced
+kind: LockConfig
