@@ -25,29 +25,6 @@ v-sync:
 	$(call chdir,dependencies)
 	vendir sync
 
-# bootstrap argo locally
-argo-bootstrap:
-	@[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
-	@[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
-	$(call chdir,dependencies)
-	kubectl create namespace argocd
-	kustomize build bootstrap/argo-cd | kubectl apply -f -
-	kubectl apply -f bootstrap/argo-cd.yaml && kubectl apply -f bootstrap/root.yaml
-	kubectl -n argocd create secret generic autopilot-secret \
-		--from-literal git_username=$GITHUB_USER \
-		--from-literal git-token=$GIT_TOKEN
-
-argo-deprovision:
-	@[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
-	@[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
-	$(call chdir,dependencies)
-	kubectl create namespace argocd
-	kustomize build bootstrap/argo-cd | kubectl apply -f -
-	kubectl -n argocd create secret generic autopilot-secret \
-		--from-literal git_username=$GITHUB_USER \
-		--from-literal git-token=$GIT_TOKEN
-	kubectl apply -f bootstrap/argo-cd.yaml && kubectl apply -f bootstrap/root.yaml
-
 install-cert-manager:
 	helm upgrade --install \
     cert-manager \
@@ -56,6 +33,29 @@ install-cert-manager:
     --create-namespace \
     --set installCRDs=true\
     --wait
+
+# bootstrap argo locally
+argo-bootstrap:
+	$(MAKE) install-cert-manager
+	# @[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
+	# @[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
+	kubectl create namespace argocd && \
+	kustomize build bootstrap/argo-cd | kubectl apply -f - &&\
+	kubectl apply -f bootstrap/argo-cd.yaml && kubectl apply -f bootstrap/root.yaml && \
+	kubectl -n argocd create secret generic autopilot-secret \
+		--from-literal git_username=$GITHUB_USER \
+		--from-literal git-token=$GIT_TOKEN
+
+argo-deprovision:
+	# @[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
+	# @[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
+	$(call chdir,dependencies)
+	kubectl create namespace argocd
+	kustomize build bootstrap/argo-cd | kubectl apply -f -
+	kubectl -n argocd create secret generic autopilot-secret \
+		--from-literal git_username=$GITHUB_USER \
+		--from-literal git-token=$GIT_TOKEN
+	kubectl apply -f bootstrap/argo-cd.yaml && kubectl apply -f bootstrap/root.yaml
 
 # export OVERLAY_PATH ?= $(APP_ROOT)/k8s/overlays/$(STAGE)/
 # define kustomize-image-edit

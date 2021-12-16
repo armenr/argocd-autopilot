@@ -26,8 +26,9 @@ while IFS= read -r -d '' app_directory ; do
   fi
 
   if [ -d "./deploy/overlays/$app_name" ]; then
-  printf "\n🛠  🧙 🪄   Magically generated --> $app_name/deploy.yaml \n"
+  printf "\n🛠  🧙 🪄   Magically generated --> $app_name/deploy.yaml \n\n"
   ytt --file "$SYNCED_DIR" --file "./deploy/overlays/$app_name" > "./deploy/generated-manifests/$app_name/deploy.yaml"
   fi
 
 done < <(find ./deploy/synced/* -maxdepth 0 -type d -print0)
+printf "\n ######################__ALL_DONE__###################### \n\n"
