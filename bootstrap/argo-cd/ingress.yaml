@@ -16,7 +16,7 @@ spec:
         - name: argocd-server
           port: 7070
     - kind: Rule
-      match: Host(`kubernetes.docker.internal`) && Headers(`Content-Type`, `application/grpc`)
+      match: Host(`kubernetes.docker.internal`) && Headers(`Content-Type`, `application/grpc`)  # && PathPrefix(`/argocd`)
       priority: 11
       services:
         - name: argocd-server

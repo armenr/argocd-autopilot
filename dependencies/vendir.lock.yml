@@ -1,0 +1,13 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - git:
+      commitTitle: 'Merge pull request #2 from balchua/master...'
+      sha: 6e64116bc171ee32700b2b0ed7634f08abcb9c0e
+    path: nginx
+  - helmChart:
+      appVersion: v2.1.0
+      version: 2.3.1
+    path: loki-stack
+  path: deploy/synced
+kind: LockConfig

@@ -1,0 +1,11 @@
+#@ load("@ytt:overlay", "overlay")
+
+#! add metadata.namespace to each resource
+#! when using overlay.all, we must specify an expects
+#! in this case, we expect at least 1 resource to be match
+#@overlay/match by=overlay.all, expects="1+"
+---
+metadata:
+  #! prevent errors when a resource doesn't even have a namespace key
+  #@overlay/match missing_ok=True
+  namespace: nginx
