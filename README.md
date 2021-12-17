@@ -18,8 +18,17 @@ This REPO is the backbone of our new GitOps approach/flow, AND is the starting p
 
 ### Shit for Brew (lots of goodies in here, explore at will!)
 
+Some of these are required for THIS repo.
+
+Others are included because, in my not-so-humble-opinion, it would behoove any architect, engineer, or platform developer/operator to know about and leverage the wonderful tools in this list!
+
+Please keep in mind, I hadn't had much hands-on time with k8s prior to this, so if my choices in tooling make me look like a newb, so be it. I like to be efficient, not write a 15-line bash command with "\" at the end of every bloody line, directly in my terminal.
+
+🤓🤓🤓🤓🤓🤓🤓🤓🤓
+
 ```sh
 brew install k3d argocd argo
+brew install lazygit
 brew tap vmware-tanzu/carvel
 brew install vendir
 brew install remake
