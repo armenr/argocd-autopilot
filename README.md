@@ -68,6 +68,14 @@ To observe what does a "new project/new environment/new application workflow" lo
 
 `argocd-autopilot/examples/demo-app/ -p testing --wait-timeout 2m`
 
+__NOTE:__ Please be CERTAIN to run `git pull` after EVERY `argocd-autopilot` command you run! It very quietly adds shit to your code repo and pushes it for you. 
+
+So, just to be safe, please pull after each argocd-autopilot command.
+
+Additionally, there's a bug in the argocd-autopilot CLI --> DO NOT USE ANY OF THE REMOVE/DELETE functionality of the CLI tool for argocd-autopilot. 
+
+It will nuke things and automatically push them to github that you do NOT want to lose. Just REMOVE the corresponding project file and App files it creates if you want to remove deployments!
+
 ### TEARDOWN/RESET
 
 `make destroy` --> ALL resources will be dispatched to their doom, easily and quickly.
