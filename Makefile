@@ -1,9 +1,10 @@
 # SHELL = bash
-# .ONESHELL:
-CHDIR_SHELL := $(SHELL)
+# Recitals
+.ONESHELL:
 .PHONY : ygen vsync argo-bootstrap install-cert-manager argo-deprovision cluster
 
-# CHDIR_SHELL := $(SHELL)
+# Vars
+CHDIR_SHELL := $(SHELL)
 AWS_ACCESS_KEY_ID := $(aws configure get default.aws_access_key_id)
 AWS_SECRET_ACCESS_KEY := $(aws configure get default.aws_secret_access_key)
 
@@ -28,6 +29,7 @@ v-manifests:
 # sync external manifests & charts
 v-sync:
 	$(call chdir,dependencies)
+	vendir sync
 
 sealed-secrets-generate-aws:
 	kubectl --namespace argocd \
