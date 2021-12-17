@@ -87,6 +87,7 @@ argo-bootstrap:
 	$(MAKE) install-cert-manager
 	$(MAKE) install-sealed-secrets
 	$(MAKE) v-sync
+	$(MAKE) v-manifests
 	# @[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
 	# @[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
 	kubectl create namespace argocd && \
