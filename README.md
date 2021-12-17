@@ -22,7 +22,7 @@ Some of these are required for THIS repo.
 
 Others are included because, in my not-so-humble-opinion, it would behoove any architect, engineer, or platform developer/operator to know about and leverage the wonderful tools in this list!
 
-Please keep in mind, I hadn't had much hands-on time with k8s prior to this, so if my choices in tooling make me look like a newb, so be it. I like to be efficient, not write a 15-line bash command with "\" at the end of every bloody line, directly in my terminal.
+Please keep in mind, I hadn't had much hands-on time with k8s prior to this, so if my choices in tooling make me look like a newb, so be it. I like to be efficient, not write a 15-line bash command with a friendly \ at the end of every bloody line, directly in my terminal.
 
 🤓🤓🤓🤓🤓🤓🤓🤓🤓
 
@@ -67,6 +67,14 @@ To observe what does a "new project/new environment/new application workflow" lo
 `argocd-autopilot app create hello-world --app github.com/argoproj-labs/`
 
 `argocd-autopilot/examples/demo-app/ -p testing --wait-timeout 2m`
+
+__NOTE:__ Please be CERTAIN to run `git pull` after EVERY `argocd-autopilot` command you run! It very quietly adds shit to your code repo and pushes it for you. 
+
+So, just to be safe, please pull after each argocd-autopilot command.
+
+Additionally, there's a bug in the argocd-autopilot CLI --> DO NOT USE ANY OF THE REMOVE/DELETE functionality of the CLI tool for argocd-autopilot. 
+
+It will nuke things and automatically push them to github that you do NOT want to lose. Just REMOVE the corresponding project file and App files it creates if you want to remove deployments!
 
 ### TEARDOWN/RESET
 
