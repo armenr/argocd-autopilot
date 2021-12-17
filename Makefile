@@ -1,6 +1,6 @@
-SHELL = bash
-.ONESHELL:
-
+# SHELL = bash
+# .ONESHELL:
+CHDIR_SHELL := $(SHELL)
 .PHONY : ygen vsync argo-bootstrap install-cert-manager argo-deprovision cluster
 
 # CHDIR_SHELL := $(SHELL)
@@ -28,7 +28,6 @@ v-manifests:
 # sync external manifests & charts
 v-sync:
 	$(call chdir,dependencies)
-	vendir sync
 
 sealed-secrets-generate-aws:
 	kubectl --namespace argocd \
