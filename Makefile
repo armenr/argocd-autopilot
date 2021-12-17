@@ -1,6 +1,11 @@
+SHELL = bash
+.ONESHELL:
+
 .PHONY : ygen vsync argo-bootstrap install-cert-manager argo-deprovision cluster
 
-CHDIR_SHELL := $(SHELL)
+# CHDIR_SHELL := $(SHELL)
+AWS_ACCESS_KEY_ID := $(aws configure get default.aws_access_key_id)
+AWS_SECRET_ACCESS_KEY := $(aws configure get default.aws_secret_access_key)
 
 define chdir
    $(eval _D=$(firstword $(1) $(@D)))
@@ -25,7 +30,50 @@ v-sync:
 	$(call chdir,dependencies)
 	vendir sync
 
+sealed-secrets-generate-aws:
+	kubectl --namespace argocd \
+    create secret generic aws-creds \
+    --from-file creds=./aws-creds.conf \
+    --output json \
+    --dry-run=client \
+    | kubeseal \
+    --controller-namespace argocd \
+    --controller-name sealed-secrets \
+    --format yaml \
+    | tee crossplane/configs/config-aws-creds.yaml
+
+# aws-creds-config:
+# 	cat <<- EOF > ./test.txt
+# 		$(AWS_ACCESS_KEY_ID)
+# 		========
+
+# 		This stuff will all be written to the target file. Be sure
+# 		to escape dollar-signs and backslashes as Make will be scanning
+# 		this text for variable replacements before bash scans it for its
+# 		own strings.
+
+# 		Otherwise formatting is just as in any other bash heredoc. Note
+# 		I used the <<- operator which allows for indentation. This markdown
+# 		file will not have whitespace at the start of lines.
+
+# 		Here is a programmatic way to generate a markdwon list all PDF files
+# 		in the current directory:
+
+# 		`find -maxdepth 1 -name '*.pdf' -exec echo " + {}" \;`
+# 	EOF
+
+
+
 install-cert-manager:
+	helm upgrade --install \
+    cert-manager \
+    jetstack/cert-manager \
+    --namespace cert-manager \
+    --create-namespace \
+    --set installCRDs=true\
+    --wait
+
+install-sealed-secrets:
 	helm upgrade --install \
     cert-manager \
     jetstack/cert-manager \
@@ -37,6 +85,8 @@ install-cert-manager:
 # bootstrap argo locally
 argo-bootstrap:
 	$(MAKE) install-cert-manager
+	$(MAKE) install-sealed-secrets
+	$(MAKE) v-sync
 	# @[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
 	# @[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
 	kubectl create namespace argocd && \
@@ -46,16 +96,16 @@ argo-bootstrap:
 		--from-literal git_username=$GITHUB_USER \
 		--from-literal git-token=$GIT_TOKEN
 
-argo-deprovision:
-	# @[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
-	# @[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
-	$(call chdir,dependencies)
-	kubectl create namespace argocd
-	kustomize build bootstrap/argo-cd | kubectl apply -f -
-	kubectl -n argocd create secret generic autopilot-secret \
-		--from-literal git_username=$GITHUB_USER \
-		--from-literal git-token=$GIT_TOKEN
-	kubectl apply -f bootstrap/argo-cd.yaml && kubectl apply -f bootstrap/root.yaml
+# argo-deprovision:
+# 	# @[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
+# 	# @[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
+# 	$(call chdir,dependencies)
+# 	kubectl create namespace argocd
+# 	kustomize build bootstrap/argo-cd | kubectl apply -f -
+# 	kubectl -n argocd create secret generic autopilot-secret \
+# 		--from-literal git_username=$GITHUB_USER \
+# 		--from-literal git-token=$GIT_TOKEN
+# 	kubectl apply -f bootstrap/argo-cd.yaml && kubectl apply -f bootstrap/root.yaml
 
 # export OVERLAY_PATH ?= $(APP_ROOT)/k8s/overlays/$(STAGE)/
 # define kustomize-image-edit
