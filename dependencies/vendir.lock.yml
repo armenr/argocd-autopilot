@@ -2,18 +2,12 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - helmChart:
-      appVersion: v2.1.0
-      version: 2.3.1
-    path: loki-stack
-  path: deploy/synced
-- contents:
-  - helmChart:
-      appVersion: v3.2.4
-      version: 0.9.3
+      appVersion: 3.2.6
+      version: 0.1.13
     path: argo-workflows
   - helmChart:
-      appVersion: v2.2.1
-      version: 3.29.3
+      appVersion: 2.2.1
+      version: 2.0.19
     path: argo-cd
   - helmChart:
       appVersion: v1.2.1

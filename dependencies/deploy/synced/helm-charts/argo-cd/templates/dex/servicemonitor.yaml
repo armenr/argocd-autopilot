@@ -1,38 +1,22 @@
-{{- if and .Values.dex.metrics.enabled .Values.dex.metrics.serviceMonitor.enabled }}
+{{- if and .Values.dex.enabled .Values.dex.metrics.enabled .Values.dex.metrics.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ template "argo-cd.dex.fullname" . }}
-  {{- with .Values.dex.metrics.serviceMonitor.namespace }}
-  namespace: {{ . }}
-  {{- end }}
-  labels:
-    {{- include "argo-cd.labels" (dict "context" . "component" .Values.dex.name "name" .Values.dex.name) | nindent 4 }}
-    {{- with .Values.dex.metrics.serviceMonitor.selector }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-    {{- with .Values.dex.metrics.serviceMonitor.additionalLabels }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
+  name: {{ include "argocd.dex" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: dex
 spec:
   endpoints:
-    - port: metrics
-      {{- with .Values.dex.metrics.serviceMonitor.interval }}
-      interval: {{ . }}
-      {{- end }}
+    - port: http-metrics
+      interval: {{ .Values.dex.metrics.serviceMonitor.interval }}
       path: /metrics
-      {{- with .Values.dex.metrics.serviceMonitor.relabelings }}
-      relabelings:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.dex.metrics.serviceMonitor.metricRelabelings }}
-      metricRelabelings:
-        {{- toYaml . |nindent 8 }}
-      {{- end }}
   namespaceSelector:
     matchNames:
       - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      {{- include "argo-cd.selectorLabels" (dict "context" . "component" .Values.dex.name "name" .Values.dex.name) | nindent 6 }}
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: dex
 {{- end }}
+

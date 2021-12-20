@@ -1,6 +1,5 @@
 apiVersion: k3d.io/v1alpha3
 kind: Simple
-name: local-argo-autopilot
 # servers: 2
 # agents: 2
 image: rancher/k3s:v1.21.7-k3s1
@@ -28,7 +27,9 @@ ports:
   - port: 443:443
     nodeFilters:
       - loadbalancer
-
+  - port: 8080:8008
+    nodeFilters:
+      - loadbalancer
 
 
 

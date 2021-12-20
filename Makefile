@@ -15,13 +15,14 @@
 CHDIR_SHELL := $(SHELL)
 AWS_ACCESS_KEY_ID := $(aws configure get default.aws_access_key_id)
 AWS_SECRET_ACCESS_KEY := $(aws configure get default.aws_secret_access_key)
+CLUSTER_ID := $(whoami)
 
 define chdir
 	$(eval _D=$(firstword $(1) $(@D)))
 	$(info $(MAKE): cd $(_D)) $(eval SHELL = cd $(_D); $(CHDIR_SHELL))
 endef
 
-argocd-install:
+install-argocd:
 	kubectl create namespace argocd && \
 	kustomize build bootstrap/argo-cd | kubectl apply -f - &&\
 	kubectl apply -f bootstrap/argo-cd.yaml && kubectl apply -f bootstrap/root.yaml && \
@@ -29,11 +30,11 @@ argocd-install:
 		--from-literal git_username=$GITHUB_USER \
 		--from-literal git-token=$GIT_TOKEN
 
-kustomize-workflows:
+kustomize-argo-workflows:
 	kubectl create namespace argo && \
 	kustomize build bootstrap/argo-workflows | kubectl apply -f -
 
-argo-workflows-install:
+install-argo-workflows:
 	kubectl create namespace argo && \
 	helm upgrade --install \
 		argo-workflows argo/argo-workflows \
@@ -43,7 +44,7 @@ argo-workflows-install:
 		--set server.extraArgs="{--auth-mode=server}" \
 		--wait
 
-argo-bootstrap:
+bootstrap-argo-stack:
 	$(MAKE) install-cert-manager
 	$(MAKE) v-sync
 	$(MAKE) v-manifests
@@ -67,11 +68,12 @@ argo-deprovision:			# TODO
 
 # spin up k3s cluser via k3d
 cluster:
-	k3d cluster create --config ./assets/k3d_local.yaml
+	k3d cluster create local-$(USER) --config ./assets/k3d_local.yaml
+	$(MAKE) install-cert-manager
 
 # destroy all the things
 destroy:
-	k3d cluster delete local-argo-autopilot
+	k3d cluster delete local-$(USER)
 
 install-cert-manager:
 	helm upgrade --install \
@@ -112,3 +114,23 @@ v-manifests:
 v-sync:
 	$(call chdir,dependencies)
 	vendir sync
+
+kapp-deploy-argo-workflows-server:
+	kapp deploy \
+		-a argo-workflows \
+		-n kube-system \
+		-f <'('helm template  --values my-vals.yml')'
+
+# kapp deploy -n argo -a argo-workflows -f <(kustomize build bootstrap/argo-workflows) --diff-changes
+# kapp deploy -n argo -a argo-workflows -f <(helm template argo-workflows --repo https://argoproj.github.io/argo-helm argo-workflows)
+# $kapp deploy -a my-chart -f <(helm template my-chart --values my-vals.yml)
+
+
+# kapp -y deploy -a argo-workflows -f <(helm template argo-workflows --repo https://argoproj.github.io/argo-helm argo-workflows \
+#     --set server.ingress.hosts="{kubernetes.docker.internal}" \
+#     --set server.ingress.paths="{/workflows}" \
+#     --set server.ingress.enabled=true
+#     --set server.extraArgs="{--auth-mode=server}" \
+# )
+
+# kapp deploy -a argo-workflows -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml

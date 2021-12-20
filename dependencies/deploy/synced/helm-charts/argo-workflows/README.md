@@ -1,223 +1,452 @@
-# Argo Workflows Chart
+# Argo Workflows Chart packaged by Bitnami
 
-This is a **community maintained** chart. It is used to set up argo and it's needed dependencies through one command. This is used in conjunction with [helm](https://github.com/kubernetes/helm).
+[Argo Workflows](https://argoproj.github.io/workflows) allows to orchestrate parallel jobs in kubernetes.
 
-If you want your deployment of this helm chart to most closely match the [argo CLI](https://github.com/argoproj/argo-workflows), you should deploy it in the `kube-system` namespace.
+## TL;DR
 
-## Pre-Requisites
+```console
+$ helm repo add bitnami https://charts.bitnami.com/bitnami
+$ helm install my-release bitnami/argo-workflows
+```
 
-This chart uses an install hook to configure the CRD definition. Installation of CRDs is a somewhat privileged process in itself and in RBAC enabled clusters the `default` service account for namespaces does not typically have the ability to do create these.
+## Introduction
 
-A few options are:
+This chart bootstraps a [Argo Workflows](https://argoproj.github.io/workflows) deployment on a [Kubernetes](https://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
-- Manually create a ServiceAccount in the Namespace which your release will be deployed w/ appropriate bindings to perform this action and set the `serviceAccountName` field in the Workflow spec
-- Augment the `default` ServiceAccount permissions in the Namespace in which your Release is deployed to have the appropriate permissions
+Bitnami charts can be used with [Kubeapps](https://kubeapps.com/) for deployment and management of Helm Charts in clusters. This chart has been tested to work with NGINX Ingress, cert-manager, fluentd and Prometheus on top of the [BKPR](https://kubeprod.io/).
 
-## Usage Notes
+## Prerequisites
 
-### Workflow controller
+- Kubernetes 1.12+
+- Helm 3.1.0
+- PV provisioner support in the underlying infrastructure
+- ReadWriteMany volumes for deployment scaling
 
-This chart defaults to setting the `controller.instanceID.enabled` to `false` now, which means the deployed controller will act upon any workflow deployed to the cluster. If you would like to limit the behavior and deploy multiple workflow controllers, please use the `controller.instanceID.enabled` attribute along with one of it's configuration options to set the `instanceID` of the workflow controller to be properly scoped for your needs.
+## Installing the Chart
 
-### Workflow server authentication
+To install the chart with the release name `my-release`:
 
-By default, the chart requires some kind of authentication mechanism. This adopts the [default behaviour from the Argo project](https://github.com/argoproj/argo-workflows/pull/5211) itself. However, for local development purposes, or cases where your gateway authentication is covered by some other means, you can set the authentication mode for the Argo server by setting the `server.extraArgs: [--auth-mode=server]`. There are a few additional comments in the values.yaml file itself, including commented-out settings to disable authentication on the server UI itself using the same `--auth-mode=server` setting.
+```console
+helm install my-release bitnami/argo-workflowss
+```
 
-## Values
+The command deploys Argo Workflows on the Kubernetes cluster in the default configuration. The [Parameters](#parameters) section lists the parameters that can be configured during installation.
 
-The `values.yaml` contains items used to tweak a deployment of this chart.
-Fields to note:
+> **Tip**: List all releases using `helm list`
 
-- `controller.instanceID.enabled`: If set to true, the Argo Controller will **ONLY** monitor Workflow submissions with a `--instanceid` attribute
-- `controller.instanceID.useReleaseName`: If set to true then chart set controller instance id to release name
-- `controller.instanceID.explicitID`: Allows customization of an instance id for the workflow controller to monitor
-- `singleNamespace`:  When true, restricts the workflow controller to operate
-  in just the single namespace (that one of the Helm release).
-- `controller.workflowNamespaces`: This is a list of namespaces where the
-  workflow controller will manage workflows. Only valid when `singleNamespace`
-  is false.
+## Uninstalling the Chart
 
-### General parameters
+To uninstall/delete the `my-release` deployment:
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| createAggregateRoles | bool | `true` | Create clusterroles that extend existing clusterroles to interact with argo-cd crds |
-| fullnameOverride | string | `nil` | String to fully override "argo-workflows.fullname" template |
-| images.pullPolicy | string | `"Always"` | imagePullPolicy to apply to all containers |
-| images.pullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry |
-| kubeVersionOverride | string | `""` | Override the Kubernetes version, which is used to evaluate certain manifests |
-| nameOverride | string | `nil` | String to partially override "argo-workflows.fullname" template |
-| singleNamespace | bool | `false` | Restrict Argo to operate only in a single namespace (the namespace of the Helm release) by apply Roles and RoleBindings instead of the Cluster equivalents, and start workflow-controller with the --namespaced flag. Use it in clusters with strict access policy. |
+```console
+helm delete my-release
+```
 
-### Workflow
+The command removes all the Kubernetes components associated with the chart and deletes the release.
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| workflow.namespace | string | `nil` | Deprecated; use controller.workflowNamespaces instead. |
-| workflow.rbac.create | bool | `true` | Adds Role and RoleBinding for the above specified service account to be able to run workflows. A Role and Rolebinding pair is also created for each namespace in controller.workflowNamespaces (see below) |
-| workflow.serviceAccount.annotations | object | `{}` | Annotations applied to created service account |
-| workflow.serviceAccount.create | bool | `false` | Specifies whether a service account should be created |
-| workflow.serviceAccount.name | string | `"argo-workflow"` | Service account which is used to run workflows |
+## Parameters
 
-### Workflow Controller
+### Global parameters
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| controller.affinity | object | `{}` | Assign custom [affinity] rules |
-| controller.clusterWorkflowTemplates.enabled | bool | `true` | Create a ClusterRole and CRB for the controller to access ClusterWorkflowTemplates. |
-| controller.containerRuntimeExecutor | string | `"docker"` | Specifies the container runtime interface to use (one of: `docker`, `kubelet`, `k8sapi`, `pns`, `emissary`) |
-| controller.containerRuntimeExecutors | list | `[]` | Specifies the executor to use. This has precedence over `controller.containerRuntimeExecutor`. |
-| controller.extraArgs | list | `[]` | Extra arguments to be added to the controller |
-| controller.extraContainers | list | `[]` | Extra containers to be added to the controller deployment |
-| controller.extraEnv | list | `[]` | Extra environment variables to provide to the controller container |
-| controller.image.registry | string | `"quay.io"` | Registry to use for the controller |
-| controller.image.repository | string | `"argoproj/workflow-controller"` | Registry to use for the controller |
-| controller.image.tag | string | `""` | Overrides the image tag whose default is the chart appVersion. |
-| controller.initialDelay | string | `nil` | Resolves ongoing, uncommon AWS EKS bug: https://github.com/argoproj/argo-workflows/pull/4224 |
-| controller.instanceID.enabled | bool | `false` | Configures the controller to filter workflow submissions to only those which have a matching instanceID attribute. |
-| controller.instanceID.explicitID | string | `""` | Use a custom instanceID |
-| controller.instanceID.useReleaseName | bool | `false` | Use ReleaseName as instanceID |
-| controller.links | list | `[]` | Configure Argo Server to show custom [links] |
-| controller.livenessProbe | object | See [values.yaml] | Configure liveness [probe] for the controller |
-| controller.loadBalancerSourceRanges | list | `[]` | Source ranges to allow access to service from. Only applies to service type `LoadBalancer` |
-| controller.logging.globallevel | string | `"0"` | Set the glog logging level |
-| controller.logging.level | string | `"info"` | Set the logging level (one of: `debug`, `info`, `warn`, `error`) |
-| controller.metricsConfig.enabled | bool | `false` | Enables prometheus metrics server |
-| controller.metricsConfig.path | string | `"/metrics"` | Path is the path where metrics are emitted. Must start with a "/". |
-| controller.metricsConfig.port | int | `9090` | Port is the port where metrics are emitted |
-| controller.metricsConfig.portName | string | `"metrics"` | Container metrics port name |
-| controller.metricsConfig.servicePort | int | `8080` | Service metrics port |
-| controller.metricsConfig.servicePortName | string | `"metrics"` | Service metrics port name |
-| controller.name | string | `"workflow-controller"` | Workflow controller name string |
-| controller.namespaceParallelism | string | `nil` | Limits the maximum number of incomplete workflows in a namespace |
-| controller.nodeSelector | object | `{"kubernetes.io/os":"linux"}` | [Node selector] |
-| controller.parallelism | string | `nil` | parallelism dictates how many workflows can be running at the same time |
-| controller.pdb.enabled | bool | `false` | Configure [Pod Disruption Budget] for the controller pods |
-| controller.persistence | object | `{}` | enable persistence using postgres |
-| controller.podAnnotations | object | `{}` | podAnnotations is an optional map of annotations to be applied to the controller Pods |
-| controller.podLabels | object | `{}` | Optional labels to add to the controller pods |
-| controller.podSecurityContext | object | `{}` | SecurityContext to set on the controller pods |
-| controller.podWorkers | string | `nil` | Number of pod workers |
-| controller.priorityClassName | string | `""` | Leverage a PriorityClass to ensure your pods survive resource shortages. |
-| controller.replicas | int | `1` | The number of controller pods to run |
-| controller.resourceRateLimit | object | `{}` | Globally limits the rate at which pods are created. This is intended to mitigate flooding of the Kubernetes API server by workflows with a large amount of parallel nodes. |
-| controller.resources | object | `{}` | Resource limits and requests for the controller |
-| controller.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true}` | the controller container's securityContext |
-| controller.serviceAccount.annotations | object | `{}` | Annotations applied to created service account |
-| controller.serviceAccount.create | bool | `true` | Create a service account for the controller |
-| controller.serviceAccount.name | string | `""` | Service account name |
-| controller.serviceAnnotations | object | `{}` | Annotations to be applied to the controller Service |
-| controller.serviceLabels | object | `{}` | Optional labels to add to the controller Service |
-| controller.serviceMonitor.additionalLabels | object | `{}` | Prometheus ServiceMonitor labels |
-| controller.serviceMonitor.enabled | bool | `false` | Enable a prometheus ServiceMonitor |
-| controller.serviceType | string | `"ClusterIP"` | Service type of the controller Service |
-| controller.telemetryConfig.enabled | bool | `false` | Enables prometheus telemetry server |
-| controller.telemetryConfig.path | string | `"/telemetry"` | telemetry path |
-| controller.telemetryConfig.port | int | `8081` | telemetry container port |
-| controller.telemetryConfig.servicePort | int | `8081` | telemetry service port |
-| controller.telemetryConfig.servicePortName | string | `"telemetry"` | telemetry service port name |
-| controller.tolerations | list | `[]` | [Tolerations] for use with node taints |
-| controller.workflowDefaults | object | `{}` | Default values that will apply to all Workflows from this controller, unless overridden on the Workflow-level. Only valid for 2.7+ |
-| controller.workflowNamespaces | list | `["default"]` | Specify all namespaces where this workflow controller instance will manage workflows. This controls where the service account and RBAC resources will be created. Only valid when singleNamespace is false. |
-| controller.workflowRestrictions | object | `{}` | Restricts the Workflows that the controller will process. Only valid for 2.9+ |
-| controller.workflowWorkers | string | `nil` | Number of workflow workers |
+| Name                      | Description                                     | Value |
+| ------------------------- | ----------------------------------------------- | ----- |
+| `global.imageRegistry`    | Global Docker image registry                    | `""`  |
+| `global.imagePullSecrets` | Global Docker registry secret names as an array | `[]`  |
+| `global.storageClass`     | Global StorageClass for Persistent Volume(s)    | `""`  |
 
-### Workflow Executor
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| executor.env | object | `{}` | Adds environment variables for the executor. |
-| executor.image.registry | string | `"quay.io"` | Registry to use for the Workflow Executors |
-| executor.image.repository | string | `"argoproj/argoexec"` | Repository to use for the Workflow Executors |
-| executor.image.tag | string | `""` | Overrides the image tag whose default is the chart appVersion. |
-| executor.resources | object | `{}` | Resource limits and requests for the Workflow Executors |
-| executor.securityContext | object | `{}` | sets security context for the executor container |
+### Common parameters
 
-### Workflow Server
+| Name                   | Description                                                                                                                                                                                                           | Value           |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| `kubeVersion`          | Override Kubernetes version                                                                                                                                                                                           | `""`            |
+| `nameOverride`         | String to partially override common.names.fullname                                                                                                                                                                    | `""`            |
+| `fullnameOverride`     | String to fully override common.names.fullname                                                                                                                                                                        | `""`            |
+| `commonLabels`         | Labels to add to all deployed objects                                                                                                                                                                                 | `{}`            |
+| `commonAnnotations`    | Annotations to add to all deployed objects                                                                                                                                                                            | `{}`            |
+| `clusterDomain`        | Kubernetes cluster domain name                                                                                                                                                                                        | `cluster.local` |
+| `extraDeploy`          | Array of extra objects to deploy with the release                                                                                                                                                                     | `[]`            |
+| `rbac.singleNamespace` | Restrict Argo to only deploy into a single namespace by apply Roles and RoleBindings instead of the Cluster equivalents, and start argo-cli with the --namespaced flag. Use it in clusters with strict access policy. | `false`         |
+| `createAggregateRoles` | Create Aggregated cluster roles                                                                                                                                                                                       | `true`          |
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| server.affinity | object | `{}` | Assign custom [affinity] rules |
-| server.baseHref | string | `"/"` | Value for base href in index.html. Used if the server is running behind reverse proxy under subpath different from /. |
-| server.clusterWorkflowTemplates.enableEditing | bool | `true` | Give the server permissions to edit ClusterWorkflowTemplates. |
-| server.clusterWorkflowTemplates.enabled | bool | `true` | Create a ClusterRole and CRB for the server to access ClusterWorkflowTemplates. |
-| server.enabled | bool | `true` | Deploy the Argo Server |
-| server.extraArgs | list | `[]` | Extra arguments to provide to the Argo server binary, such as for disabling authentication. |
-| server.extraContainers | list | `[]` | Extra containers to be added to the server deployment |
-| server.extraEnv | list | `[]` | Extra environment variables to provide to the argo-server container |
-| server.image.registry | string | `"quay.io"` | Registry to use for the server |
-| server.image.repository | string | `"argoproj/argocli"` | Repository to use for the server |
-| server.image.tag | string | `""` | Overrides the image tag whose default is the chart appVersion. |
-| server.ingress.annotations | object | `{}` | Additional ingress annotations |
-| server.ingress.enabled | bool | `false` | Enable an ingress resource |
-| server.ingress.extraPaths | list | `[]` | Additional ingress paths |
-| server.ingress.hosts | list | `[]` | List of ingress hosts |
-| server.ingress.ingressClassName | string | `""` | Defines which ingress controller will implement the resource |
-| server.ingress.labels | object | `{}` | Additional ingress labels |
-| server.ingress.pathType | string | `"Prefix"` | Ingress path type. One of `Exact`, `Prefix` or `ImplementationSpecific` |
-| server.ingress.paths | list | `["/"]` | List of ingress paths |
-| server.ingress.tls | list | `[]` | Ingress TLS configuration |
-| server.loadBalancerIP | string | `""` | Static IP address to assign to loadBalancer service type `LoadBalancer` |
-| server.loadBalancerSourceRanges | list | `[]` | Source ranges to allow access to service from. Only applies to service type `LoadBalancer` |
-| server.name | string | `"server"` | Server name string |
-| server.nodeSelector | object | `{"kubernetes.io/os":"linux"}` | [Node selector] |
-| server.pdb.enabled | bool | `false` | Configure [Pod Disruption Budget] for the server pods |
-| server.podAnnotations | object | `{}` | optional map of annotations to be applied to the ui Pods |
-| server.podLabels | object | `{}` | Optional labels to add to the UI pods |
-| server.podSecurityContext | object | `{}` | SecurityContext to set on the server pods |
-| server.priorityClassName | string | `""` | Leverage a PriorityClass to ensure your pods survive resource shortages |
-| server.replicas | int | `1` | The number of server pods to run |
-| server.resources | object | `{}` | Resource limits and requests for the server |
-| server.secure | bool | `false` | Run the argo server in "secure" mode. Configure this value instead of `--secure` in extraArgs. |
-| server.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsNonRoot":true}` | Servers container-level security context |
-| server.serviceAccount.annotations | object | `{}` | Annotations applied to created service account |
-| server.serviceAccount.create | bool | `true` | Create a service account for the server |
-| server.serviceAccount.name | string | `""` | Service account name |
-| server.serviceAnnotations | object | `{}` | Annotations to be applied to the UI Service |
-| server.serviceLabels | object | `{}` | Optional labels to add to the UI Service |
-| server.serviceNodePort | string | `nil` | Service node port |
-| server.servicePort | int | `2746` | Service port for server |
-| server.servicePortName | string | `""` | Service port name |
-| server.serviceType | string | `"ClusterIP"` | Service type for server pods |
-| server.sso | object | `{}` | SSO configuration when SSO is specified as a server auth mode. |
-| server.tolerations | list | `[]` | [Tolerations] for use with node taints |
-| server.volumeMounts | list | `[]` | Additional volume mounts to the server main container. |
-| server.volumes | list | `[]` | Additional volumes to the server pod. |
 
-### Artifact Repository
+### Argo Workflows Server configuration parameters
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| artifactRepository.archiveLogs | bool | `false` | Archive the main container logs as an artifact |
-| artifactRepository.gcs | object | `{}` (See [values.yaml]) | Store artifact in a GCS object store |
-| artifactRepository.s3 | object | See [values.yaml] | Store artifact in a S3-compliant object store |
-| useDefaultArtifactRepo | bool | `false` | Influences the creation of the ConfigMap for the workflow-controller itself. |
-| useStaticCredentials | bool | `true` | Use static credentials for S3 (eg. when not using AWS IRSA) |
+| Name                                                 | Description                                                                                             | Value                       |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `server.image.registry`                              | server image registry                                                                                   | `docker.io`                 |
+| `server.image.repository`                            | server image repository                                                                                 | `bitnami/argo-workflow-cli` |
+| `server.image.tag`                                   | server image tag (immutable tags are recommended)                                                       | `3.2.4-scratch-r0`          |
+| `server.image.pullPolicy`                            | server image pull policy                                                                                | `Always`                    |
+| `server.image.pullSecrets`                           | server image pull secrets                                                                               | `[]`                        |
+| `server.enabled`                                     | Enable server deployment                                                                                | `true`                      |
+| `server.replicaCount`                                | Number of server replicas to deploy                                                                     | `1`                         |
+| `server.livenessProbe.enabled`                       | Enable livenessProbe on server nodes                                                                    | `true`                      |
+| `server.livenessProbe.initialDelaySeconds`           | Initial delay seconds for livenessProbe                                                                 | `10`                        |
+| `server.livenessProbe.periodSeconds`                 | Period seconds for livenessProbe                                                                        | `20`                        |
+| `server.livenessProbe.timeoutSeconds`                | Timeout seconds for livenessProbe                                                                       | `1`                         |
+| `server.livenessProbe.failureThreshold`              | Failure threshold for livenessProbe                                                                     | `3`                         |
+| `server.livenessProbe.successThreshold`              | Success threshold for livenessProbe                                                                     | `1`                         |
+| `server.readinessProbe.enabled`                      | Enable readinessProbe on server nodes                                                                   | `true`                      |
+| `server.readinessProbe.initialDelaySeconds`          | Initial delay seconds for readinessProbe                                                                | `10`                        |
+| `server.readinessProbe.periodSeconds`                | Period seconds for readinessProbe                                                                       | `20`                        |
+| `server.readinessProbe.timeoutSeconds`               | Timeout seconds for readinessProbe                                                                      | `1`                         |
+| `server.readinessProbe.failureThreshold`             | Failure threshold for readinessProbe                                                                    | `3`                         |
+| `server.readinessProbe.successThreshold`             | Success threshold for readinessProbe                                                                    | `1`                         |
+| `server.startupProbe.enabled`                        | Enable startupProbe                                                                                     | `false`                     |
+| `server.startupProbe.path`                           | Path to check for startupProbe                                                                          | `/`                         |
+| `server.startupProbe.initialDelaySeconds`            | Initial delay seconds for startupProbe                                                                  | `300`                       |
+| `server.startupProbe.periodSeconds`                  | Period seconds for startupProbe                                                                         | `10`                        |
+| `server.startupProbe.timeoutSeconds`                 | Timeout seconds for startupProbe                                                                        | `5`                         |
+| `server.startupProbe.failureThreshold`               | Failure threshold for startupProbe                                                                      | `6`                         |
+| `server.startupProbe.successThreshold`               | Success threshold for startupProbe                                                                      | `1`                         |
+| `server.customLivenessProbe`                         | Server custom livenessProbe that overrides the default one                                              | `{}`                        |
+| `server.customReadinessProbe`                        | Server custom readinessProbe that overrides the default one                                             | `{}`                        |
+| `server.customStartupProbe`                          | Server custom startupProbe that overrides the default one                                               | `{}`                        |
+| `server.resources.limits`                            | The resources limits for the server containers                                                          | `{}`                        |
+| `server.resources.requests`                          | The requested resources for the server containers                                                       | `{}`                        |
+| `server.podSecurityContext.enabled`                  | Enabled server pods' Security Context                                                                   | `true`                      |
+| `server.podSecurityContext.fsGroup`                  | Set server pod's Security Context fsGroup                                                               | `1001`                      |
+| `server.containerSecurityContext.enabled`            | Enabled server containers' Security Context                                                             | `true`                      |
+| `server.containerSecurityContext.runAsUser`          | Set server containers' Security Context runAsUser                                                       | `1001`                      |
+| `server.containerSecurityContext.runAsNonRoot`       | Set server containers' Security Context runAsNonRoot                                                    | `true`                      |
+| `server.rbac.create`                                 | Create RBAC resources for the Argo workflows server                                                     | `true`                      |
+| `server.extraArgs`                                   | Extra arguments for the server command line                                                             | `""`                        |
+| `server.auth.enabled`                                | Enable authentication                                                                                   | `true`                      |
+| `server.auth.mode`                                   | Set authentication mode. Either `server`, `client` or `sso`.                                            | `client`                    |
+| `server.auth.sso.enabled`                            | Enable SSO configuration for the server auth mode                                                       | `false`                     |
+| `server.auth.sso.issuer`                             | Root URL for the OIDC identity provider                                                                 | `""`                        |
+| `server.auth.sso.clientId.name`                      | Name of the secret containing the OIDC client ID                                                        | `""`                        |
+| `server.auth.sso.clientId.key`                       | Key in the secret to obtain the OIDC client ID                                                          | `""`                        |
+| `server.auth.sso.clientSecret.name`                  | Name of the secret containing the OIDC client secret                                                    | `""`                        |
+| `server.auth.sso.clientSecret.key`                   | Key in the secret to obtain the OIDC client secret                                                      | `""`                        |
+| `server.auth.sso.redirectUrl`                        | The OIDC redirect URL. Should be in the form <argo-root-url>/oauth2/callback.                           | `""`                        |
+| `server.auth.sso.rbac.enabled`                       | Create RBAC resources for SSO                                                                           | `true`                      |
+| `server.auth.sso.rbac.secretWhitelist`               | Restricts the secrets that the server can read                                                          | `[]`                        |
+| `server.auth.sso.scopes`                             | Scopes requested from the SSO ID provider                                                               | `[]`                        |
+| `server.clusterWorkflowTemplates.enabled`            | Create ClusterRole and CRB for the controoler to access ClusterWorkflowTemplates                        | `true`                      |
+| `server.clusterWorkflowTemplates.enableEditing`      | Give the server permissions to edit ClusterWorkflowTemplates                                            | `true`                      |
+| `server.pdb.enabled`                                 | Create Pod Disruption Budget for the server component                                                   | `false`                     |
+| `server.pdb.minAvailable`                            | Sets the min number of pods availables for the Pod Disruption Budget                                    | `1`                         |
+| `server.pdb.maxUnavailable`                          | Sets the max number of pods unavailable for the Pod Disruption Budget                                   | `1`                         |
+| `server.secure`                                      | Run Argo server in secure mode                                                                          | `false`                     |
+| `server.baseHref`                                    | Base href of the Argo Workflows deployment                                                              | `/`                         |
+| `server.containerPorts.web`                          | argo Server container port                                                                              | `2746`                      |
+| `server.serviceAccount.create`                       | Specifies whether a ServiceAccount should be created                                                    | `true`                      |
+| `server.serviceAccount.name`                         | The name of the ServiceAccount to use.                                                                  | `""`                        |
+| `server.serviceAccount.automountServiceAccountToken` | Automount service account token for the server service account                                          | `true`                      |
+| `server.command`                                     | Override default container command (useful when using custom images)                                    | `[]`                        |
+| `server.args`                                        | Override default container args (useful when using custom images)                                       | `[]`                        |
+| `server.hostAliases`                                 | server pods host aliases                                                                                | `[]`                        |
+| `server.podLabels`                                   | Extra labels for server pods                                                                            | `{}`                        |
+| `server.podAnnotations`                              | Annotations for server pods                                                                             | `{}`                        |
+| `server.podAffinityPreset`                           | Pod affinity preset. Ignored if `server.affinity` is set. Allowed values: `soft` or `hard`              | `""`                        |
+| `server.podAntiAffinityPreset`                       | Pod anti-affinity preset. Ignored if `server.affinity` is set. Allowed values: `soft` or `hard`         | `soft`                      |
+| `server.nodeAffinityPreset.type`                     | Node affinity preset type. Ignored if `server.affinity` is set. Allowed values: `soft` or `hard`        | `""`                        |
+| `server.nodeAffinityPreset.key`                      | Node label key to match. Ignored if `server.affinity` is set                                            | `""`                        |
+| `server.nodeAffinityPreset.values`                   | Node label values to match. Ignored if `server.affinity` is set                                         | `[]`                        |
+| `server.affinity`                                    | Affinity for server pods assignment                                                                     | `{}`                        |
+| `server.nodeSelector`                                | Node labels for server pods assignment                                                                  | `{}`                        |
+| `server.tolerations`                                 | Tolerations for server pods assignment                                                                  | `[]`                        |
+| `server.updateStrategy.type`                         | server statefulset strategy type                                                                        | `RollingUpdate`             |
+| `server.topologySpreadConstraints`                   | Topology spread constraints rely on node labels to identify the topology domain(s) that each Node is in | `[]`                        |
+| `server.schedulerName`                               | Alternate scheduler for the server deployment                                                           | `""`                        |
+| `server.priorityClassName`                           | server pods' priorityClassName                                                                          | `""`                        |
+| `server.lifecycleHooks`                              | for the server container(s) to automate configuration before or after startup                           | `{}`                        |
+| `server.extraEnvVars`                                | Array with extra environment variables to add to server nodes                                           | `[]`                        |
+| `server.extraEnvVarsCM`                              | Name of existing ConfigMap containing extra env vars for server nodes                                   | `""`                        |
+| `server.extraEnvVarsSecret`                          | Name of existing Secret containing extra env vars for server nodes                                      | `""`                        |
+| `server.extraVolumes`                                | Optionally specify extra list of additional volumes for the server pod(s)                               | `[]`                        |
+| `server.extraVolumeMounts`                           | Optionally specify extra list of additional volumeMounts for the server container(s)                    | `[]`                        |
+| `server.sidecars`                                    | Add additional sidecar containers to the server pod(s)                                                  | `{}`                        |
+| `server.initContainers`                              | Add additional init containers to the server pod(s)                                                     | `{}`                        |
+| `server.service.type`                                | server service type                                                                                     | `ClusterIP`                 |
+| `server.service.ports.http`                          | server service HTTP port                                                                                | `80`                        |
+| `server.service.nodePorts.http`                      | Node port for HTTP                                                                                      | `""`                        |
+| `server.service.clusterIP`                           | server service Cluster IP                                                                               | `""`                        |
+| `server.service.loadBalancerIP`                      | server service Load Balancer IP                                                                         | `""`                        |
+| `server.service.loadBalancerSourceRanges`            | server service Load Balancer sources                                                                    | `[]`                        |
+| `server.service.externalTrafficPolicy`               | server service external traffic policy                                                                  | `Cluster`                   |
+| `server.service.annotations`                         | Additional custom annotations for server service                                                        | `{}`                        |
+| `server.service.extraPorts`                          | Extra port to expose on the server service                                                              | `[]`                        |
 
-## Breaking changes from the deprecated `argo` chart
 
-1. the `installCRD` value has been removed. CRDs are now only installed from the conventional crds/ directory
-1. the CRDs were updated to `apiextensions.k8s.io/v1`
-1. the container image registry/project/tag format was changed to be more in line with the more common
+### Argo Workflows Controller configuration parameters
 
-   ```yaml
-   image:
-     registry: quay.io
-     repository: argoproj/argocli
-     tag: v3.0.1
-   ```
+| Name                                                     | Description                                                                                                                   | Value                              |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `controller.image.registry`                              | controller image registry                                                                                                     | `docker.io`                        |
+| `controller.image.repository`                            | controller image repository                                                                                                   | `bitnami/argo-workflow-controller` |
+| `controller.image.tag`                                   | controller image tag (immutable tags are recommended)                                                                         | `3.2.4-scratch-r0`                 |
+| `controller.image.pullPolicy`                            | controller image pull policy                                                                                                  | `IfNotPresent`                     |
+| `controller.image.pullSecrets`                           | controller image pull secrets                                                                                                 | `[]`                               |
+| `controller.replicaCount`                                | Number of controller replicas to deploy                                                                                       | `1`                                |
+| `controller.livenessProbe.enabled`                       | Enable livenessProbe on controller nodes                                                                                      | `true`                             |
+| `controller.livenessProbe.initialDelaySeconds`           | Initial delay seconds for livenessProbe                                                                                       | `90`                               |
+| `controller.livenessProbe.periodSeconds`                 | Period seconds for livenessProbe                                                                                              | `60`                               |
+| `controller.livenessProbe.timeoutSeconds`                | Timeout seconds for livenessProbe                                                                                             | `30`                               |
+| `controller.livenessProbe.failureThreshold`              | Failure threshold for livenessProbe                                                                                           | `3`                                |
+| `controller.livenessProbe.successThreshold`              | Success threshold for livenessProbe                                                                                           | `1`                                |
+| `controller.readinessProbe.enabled`                      | Enable readinessProbe on controller nodes                                                                                     | `true`                             |
+| `controller.readinessProbe.initialDelaySeconds`          | Initial delay seconds for readinessProbe                                                                                      | `30`                               |
+| `controller.readinessProbe.periodSeconds`                | Period seconds for readinessProbe                                                                                             | `60`                               |
+| `controller.readinessProbe.timeoutSeconds`               | Timeout seconds for readinessProbe                                                                                            | `30`                               |
+| `controller.readinessProbe.failureThreshold`             | Failure threshold for readinessProbe                                                                                          | `3`                                |
+| `controller.readinessProbe.successThreshold`             | Success threshold for readinessProbe                                                                                          | `1`                                |
+| `controller.startupProbe.enabled`                        | Enable startupProbe                                                                                                           | `false`                            |
+| `controller.startupProbe.path`                           | Path to check for startupProbe                                                                                                | `/`                                |
+| `controller.startupProbe.initialDelaySeconds`            | Initial delay seconds for startupProbe                                                                                        | `300`                              |
+| `controller.startupProbe.periodSeconds`                  | Period seconds for startupProbe                                                                                               | `10`                               |
+| `controller.startupProbe.timeoutSeconds`                 | Timeout seconds for startupProbe                                                                                              | `5`                                |
+| `controller.startupProbe.failureThreshold`               | Failure threshold for startupProbe                                                                                            | `6`                                |
+| `controller.startupProbe.successThreshold`               | Success threshold for startupProbe                                                                                            | `1`                                |
+| `controller.customLivenessProbe`                         | Controller custom livenessProbe that overrides the default one                                                                | `{}`                               |
+| `controller.customReadinessProbe`                        | Controller custom readinessProbe that overrides the default one                                                               | `{}`                               |
+| `controller.customStartupProbe`                          | Controller custom startupProbe that overrides the default one                                                                 | `{}`                               |
+| `controller.resources.limits`                            | The resources limits for the controller containers                                                                            | `{}`                               |
+| `controller.resources.requests`                          | The requested resources for the controller containers                                                                         | `{}`                               |
+| `controller.podSecurityContext.enabled`                  | Enabled controller pods' Security Context                                                                                     | `true`                             |
+| `controller.podSecurityContext.fsGroup`                  | Set controller pod's Security Context fsGroup                                                                                 | `1001`                             |
+| `controller.containerSecurityContext.enabled`            | Enabled controller containers' Security Context                                                                               | `true`                             |
+| `controller.containerSecurityContext.runAsUser`          | Set controller containers' Security Context runAsUser                                                                         | `1001`                             |
+| `controller.containerSecurityContext.runAsNonRoot`       | Set controller containers' Security Context runAsNonRoot                                                                      | `true`                             |
+| `controller.containerPorts.metrics`                      | Port to expose controller metrics                                                                                             | `9090`                             |
+| `controller.containerPorts.telemetry`                    | Port to expose controller telemetry                                                                                           | `8081`                             |
+| `controller.rbac.create`                                 | Create RBAC resources for the Argo workflows controller                                                                       | `true`                             |
+| `controller.existingConfigMap`                           |                                                                                                                               | `""`                               |
+| `controller.extraArgs`                                   | Extra arguments for the controller command line                                                                               | `""`                               |
+| `controller.config`                                      | Controller configmap configuration content                                                                                    | `{}`                               |
+| `controller.instanceID.enabled`                          | Enable submission filtering based on instanceID attribute. Requires to set instanceID.useReleaseName or instanceID.explicitID | `false`                            |
+| `controller.instanceID.useReleaseName`                   | Use the release name to filter submissions                                                                                    | `false`                            |
+| `controller.instanceID.explicitID`                       | Filter submissions based on an explicit instance ID                                                                           | `""`                               |
+| `controller.containerRuntimeExecutor`                    | Specifies the container runtime for the executor                                                                              | `k8sapi`                           |
+| `controller.clusterWorkflowTemplates.enabled`            | Whether to create a ClusterRole and Cluster Role Binding to access ClusterWokflowTemplates resources                          | `true`                             |
+| `controller.metrics.enabled`                             | Enable controller metrics exporter                                                                                            | `false`                            |
+| `controller.metrics.path`                                | Path to expose controller metrics                                                                                             | `/metrics`                         |
+| `controller.metrics.serviceMonitor.enabled`              | Enable prometheus service monitor configuration                                                                               | `false`                            |
+| `controller.telemetry.enabled`                           | Enable telemetry for the controller                                                                                           | `false`                            |
+| `controller.telemetry.path`                              | Path to expose telemetry information                                                                                          | `/telemetry`                       |
+| `controller.workflowWorkers`                             | Number of workflow workers to deploy                                                                                          | `32`                               |
+| `controller.podWorkers`                                  | Number of pod workers to deploy                                                                                               | `32`                               |
+| `controller.workflowNamespaces`                          | Namespaces allowed to run workflows                                                                                           | `["default"]`                      |
+| `controller.logging.level`                               | Level for the controller logging                                                                                              | `info`                             |
+| `controller.logging.globalLevel`                         | Global logging level for the controller                                                                                       | `0`                                |
+| `controller.pdb.enabled`                                 | Create Pod Disruption Budget for the controller component                                                                     | `false`                            |
+| `controller.pdb.minAvailable`                            | Sets the min number of pods availables for the Pod Disruption Budget                                                          | `1`                                |
+| `controller.pdb.maxUnavailable`                          | Sets the max number of pods unavailable for the Pod Disruption Budget                                                         | `1`                                |
+| `controller.serviceAccount.create`                       | Specifies whether a ServiceAccount should be created                                                                          | `true`                             |
+| `controller.serviceAccount.name`                         | Name for the service account                                                                                                  | `""`                               |
+| `controller.serviceAccount.automountServiceAccountToken` | Automount service account token for the controller service account                                                            | `true`                             |
+| `controller.command`                                     | Override default container command (useful when using custom images)                                                          | `[]`                               |
+| `controller.args`                                        | Override default container args (useful when using custom images)                                                             | `[]`                               |
+| `controller.hostAliases`                                 | controller pods host aliases                                                                                                  | `[]`                               |
+| `controller.podLabels`                                   | Extra labels for controller pods                                                                                              | `{}`                               |
+| `controller.podAnnotations`                              | Annotations for controller pods                                                                                               | `{}`                               |
+| `controller.podAffinityPreset`                           | Pod affinity preset. Ignored if `controller.affinity` is set. Allowed values: `soft` or `hard`                                | `""`                               |
+| `controller.podAntiAffinityPreset`                       | Pod anti-affinity preset. Ignored if `controller.affinity` is set. Allowed values: `soft` or `hard`                           | `soft`                             |
+| `controller.nodeAffinityPreset.type`                     | Node affinity preset type. Ignored if `controller.affinity` is set. Allowed values: `soft` or `hard`                          | `""`                               |
+| `controller.nodeAffinityPreset.key`                      | Node label key to match. Ignored if `controller.affinity` is set                                                              | `""`                               |
+| `controller.nodeAffinityPreset.values`                   | Node label values to match. Ignored if `controller.affinity` is set                                                           | `[]`                               |
+| `controller.affinity`                                    | Affinity for controller pods assignment                                                                                       | `{}`                               |
+| `controller.nodeSelector`                                | Node labels for controller pods assignment                                                                                    | `{}`                               |
+| `controller.tolerations`                                 | Tolerations for controller pods assignment                                                                                    | `[]`                               |
+| `controller.updateStrategy.type`                         | controller statefulset strategy type                                                                                          | `RollingUpdate`                    |
+| `controller.topologySpreadConstraints`                   | Topology spread constraints rely on node labels to identify the topology domain(s) that each Node is in                       | `[]`                               |
+| `controller.schedulerName`                               | Alternate scheduler for the server controller                                                                                 | `""`                               |
+| `controller.priorityClassName`                           | controller pods' priorityClassName                                                                                            | `""`                               |
+| `controller.lifecycleHooks`                              | for the controller container(s) to automate configuration before or after startup                                             | `{}`                               |
+| `controller.extraEnvVars`                                | Array with extra environment variables to add to controller nodes                                                             | `[]`                               |
+| `controller.extraEnvVarsCM`                              | Name of existing ConfigMap containing extra env vars for controller nodes                                                     | `""`                               |
+| `controller.extraEnvVarsSecret`                          | Name of existing Secret containing extra env vars for controller nodes                                                        | `""`                               |
+| `controller.extraVolumes`                                | Optionally specify extra list of additional volumes for the controller pod(s)                                                 | `[]`                               |
+| `controller.extraVolumeMounts`                           | Optionally specify extra list of additional volumeMounts for the controller container(s)                                      | `[]`                               |
+| `controller.sidecars`                                    | Add additional sidecar containers to the controller pod(s)                                                                    | `{}`                               |
+| `controller.initContainers`                              | Add additional init containers to the controller pod(s)                                                                       | `{}`                               |
+| `controller.service.type`                                | controller service type                                                                                                       | `ClusterIP`                        |
+| `controller.service.ports.metrics`                       | Metrics port for the controller                                                                                               | `8080`                             |
+| `controller.service.ports.telemetry`                     | Telemetry port for the controller                                                                                             | `8081`                             |
+| `controller.service.nodePorts.metrics`                   | Node port for HTTP                                                                                                            | `""`                               |
+| `controller.service.nodePorts.telemetry`                 | Node port for HTTPS                                                                                                           | `""`                               |
+| `controller.service.clusterIP`                           | controller service Cluster IP                                                                                                 | `""`                               |
+| `controller.service.loadBalancerIP`                      | controller service Load Balancer IP                                                                                           | `""`                               |
+| `controller.service.loadBalancerSourceRanges`            | controller service Load Balancer sources                                                                                      | `[]`                               |
+| `controller.service.externalTrafficPolicy`               | controller service external traffic policy                                                                                    | `Cluster`                          |
+| `controller.service.annotations`                         | Additional custom annotations for controller service                                                                          | `{}`                               |
+| `controller.service.extraPorts`                          | Extra port to expose on the controller service                                                                                | `[]`                               |
 
-   this also makes it easier for automatic update tooling (eg. renovate bot) to detect and update images.
 
-1. switched to quay.io as the default registry for all images
-1. removed any included usage of Minio
-1. aligned the configuration of serviceAccounts with the argo-cd chart, ie: what used to be `server.createServiceAccount` is now `server.serviceAccount.create`
-1. moved the previously known as `telemetryServicePort` inside the `telemetryConfig` as `telemetryConfig.servicePort` - same for `metricsConfig`
+### Executor configuration section
 
-[affinity]: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-[links]: https://argoproj.github.io/argo-workflows/links/
-[Node selector]: https://kubernetes.io/docs/user-guide/node-selection/
-[Pod Disruption Budget]: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
-[probe]: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
-[Tolerations]: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-[values.yaml]: values.yaml
+| Name                                        | Description                                                   | Value                        |
+| ------------------------------------------- | ------------------------------------------------------------- | ---------------------------- |
+| `executor.image.registry`                   | executor image registry                                       | `docker.io`                  |
+| `executor.image.repository`                 | executor image repository                                     | `bitnami/argo-workflow-exec` |
+| `executor.image.tag`                        | executor image tag (immutable tags are recommended)           | `3.2.3-debian-10-r21`        |
+| `executor.image.pullPolicy`                 | executor image pull policy                                    | `Always`                     |
+| `executor.image.pullSecrets`                | executor image pull secrets                                   | `[]`                         |
+| `executor.resources.limits`                 | The resources limits for the init container                   | `{}`                         |
+| `executor.resources.requests`               | The requested resources for the init container                | `{}`                         |
+| `executor.extraEnvVars`                     | Array with extra environment variables to add to server nodes | `[]`                         |
+| `executor.containerSecurityContext.enabled` | Enabled executor pods' Security Context                       | `true`                       |
+| `executor.containerSecurityContext.fsGroup` | Set executor pod's Security Context fsGroup                   | `1001`                       |
+
+
+### Traffic Exposure Parameters
+
+| Name                       | Description                                                                                                                      | Value                    |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `ingress.enabled`          | Enable ingress record generation for server                                                                                      | `false`                  |
+| `ingress.pathType`         | Ingress path type                                                                                                                | `ImplementationSpecific` |
+| `ingress.apiVersion`       | Force Ingress API version (automatically detected if not set)                                                                    | `""`                     |
+| `ingress.hostname`         | Default host for the ingress record                                                                                              | `server.local`           |
+| `ingress.path`             | Default path for the ingress record                                                                                              | `/`                      |
+| `ingress.ingressClassName` | IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)                                                    | `""`                     |
+| `ingress.annotations`      | Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations. | `{}`                     |
+| `ingress.tls`              | Enable TLS configuration for the host defined at `ingress.hostname` parameter                                                    | `false`                  |
+| `ingress.selfSigned`       | Create a TLS secret for this ingress record using self-signed certificates generated by Helm                                     | `false`                  |
+| `ingress.extraHosts`       | An array with additional hostname(s) to be covered with the ingress record                                                       | `[]`                     |
+| `ingress.extraPaths`       | An array with additional arbitrary paths that may need to be added to the ingress under the main host                            | `[]`                     |
+| `ingress.extraTls`         | TLS configuration for additional hostname(s) to be covered with this ingress record                                              | `[]`                     |
+| `ingress.secrets`          | Custom TLS certificates as secrets                                                                                               | `[]`                     |
+
+
+### Workflows configuration
+
+| Name                                                    | Description                                                       | Value   |
+| ------------------------------------------------------- | ----------------------------------------------------------------- | ------- |
+| `workflows.serviceAccount.create`                       | Whether to create a service account to run workflows              | `false` |
+| `workflows.serviceAccount.name`                         | Service account name to run workflows                             | `""`    |
+| `workflows.serviceAccount.automountServiceAccountToken` | Automount service account token for the workflows service account | `true`  |
+| `workflows.rbac.create`                                 | Whether to create RBAC resource to run workflows                  | `true`  |
+
+
+### PostgreSQL subchart
+
+| Name                            | Description                                                            | Value               |
+| ------------------------------- | ---------------------------------------------------------------------- | ------------------- |
+| `postgresql.enabled`            | Enable PostgreSQL subchart and controller persistence using PostgreSQL | `true`              |
+| `postgresql.service.port`       | PostgreSQL port                                                        | `5432`              |
+| `postgresql.postgresqlUsername` | PostgreSQL username                                                    | `postgres`          |
+| `postgresql.postgresqlDatabase` | PortgreSQL database name                                               | `bn_argo_workflows` |
+| `postgresql.postgresqlPassword` | PortgreSQL database password                                           | `""`                |
+
+
+### MySQL subchart
+
+| Name                  | Description                                                  | Value               |
+| --------------------- | ------------------------------------------------------------ | ------------------- |
+| `mysql.enabled`       | Enable MySQL subchart and controller persistence using MySQL | `false`             |
+| `mysql.service.port`  | MySQL port                                                   | `3306`              |
+| `mysql.auth.username` | MySQL username                                               | `mysql`             |
+| `mysql.auth.database` | MySQL database name                                          | `bn_argo_workflows` |
+| `mysql.auth.password` | MySQL database password                                      | `""`                |
+
+
+### External Database configuration
+
+| Name                              | Description                                                                 | Value               |
+| --------------------------------- | --------------------------------------------------------------------------- | ------------------- |
+| `externalDatabase.enabled`        | Enable using externaldatabase and the controller to use persistence with it | `false`             |
+| `externalDatabase.host`           | External Database server host                                               | `localhost`         |
+| `externalDatabase.port`           | External Database server port                                               | `3306`              |
+| `externalDatabase.username`       | External Database username                                                  | `bn_wordpress`      |
+| `externalDatabase.password`       | External Database user password                                             | `""`                |
+| `externalDatabase.database`       | External Database database name                                             | `bitnami_wordpress` |
+| `externalDatabase.existingSecret` | The name of an existing secret with database credentials                    | `""`                |
+| `externalDatabase.type`           | Either postgresql or mysql                                                  | `""`                |
+
+
+See https://github.com/bitnami-labs/readme-generator-for-helm to create the table
+
+The above parameters map to the env variables defined in [bitnami/argo-workflow-cli](https://github.com/bitnami/bitnami-docker-argo-workflow-cli). For more information please refer to the [bitnami/argo-workflow-cli](https://github.com/bitnami/bitnami-docker-argo-workflow-cli) image documentation.
+
+Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
+
+```console
+helm install my-release \
+  --set argo-workflowsUsername=admin \
+  --set argo-workflowsPassword=password \
+  --set mysql.auth.rootPassword=secretpassword \
+    bitnami/argo-workflows
+```
+
+The above command sets the Argo Workflows administrator account username and password to `admin` and `password` respectively. Additionally, it sets the MySQL `root` user password to `secretpassword`.
+
+> NOTE: Once this chart is deployed, it is not possible to change the application's access credentials, such as usernames or passwords, using Helm. To change these application credentials after deployment, delete any persistent volumes (PVs) used by the chart and re-deploy it, or use the application's built-in administrative tools if available.
+
+Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart. For example,
+
+```console
+helm install my-release -f values.yaml bitnami/argo-workflows
+```
+
+> **Tip**: You can use the default [values.yaml](values.yaml)
+
+## Configuration and installation details
+
+### [Rolling VS Immutable tags](https://docs.bitnami.com/containers/how-to/understand-rolling-tags-containers/)
+
+It is strongly recommended to use immutable tags in a production environment. This ensures your deployment does not change automatically if the same tag is updated with a different image.
+
+Bitnami will release a new chart updating its containers if a new version of the main container, significant changes, or critical vulnerabilities exist.
+
+### Database support
+
+You may want to have Argo Workflows controller connected to a database to store controller evidences. To achieve this, the chart can be deployed with the PostgreSQL or MySQL dependency (see next section to configure an external database instead of using the dependency). In order to configure the database, just change `postgresql.enabled=true` (default configuration) or `mysql.enabled=true`. The database will be configured automatically. Here is an example:
+
+```console
+postgresql.enabled=true
+```
+
+If your installaion does not require to to store controller evidences, you can disable the controller persistence by setting `postgresql.enabled=false`, `mysql.enabled=false` and ` externalDatabase.enabled=false`.
+
+#### External database
+
+You may want to have Argo Workflows controller connected to an external database to store controller evidences. To achieve this, the chart allows you to specify credentials for an external database (using either postgresql or mysql) with the [`controller.persistence.postgresql.enabled` or `controller.persistence.mysql.enabled` parameter](#parameters). You should also set `persistence.enabled` to `true`. Here is an example:
+
+```console
+externalDatabase.enabled=true
+externalDatabase.type=postgresql
+externalDatabase.host=<database_host>
+externalDatabase.port=5432
+externalDatabase.user=<database_user>
+externalDatabase.password=<database_password>
+externalDatabase.database=bitnami_wordpress
+```
+
+### Ingress
+
+This chart provides support for Ingress resources. If you have an ingress controller installed on your cluster, such as [nginx-ingress-controller](https://github.com/bitnami/charts/tree/master/bitnami/nginx-ingress-controller) or [contour](https://github.com/bitnami/charts/tree/master/bitnami/contour) you can utilize the ingress controller to serve your application.
+
+To enable Ingress integration, set `ingress.enabled` to `true`. The `ingress.hostname` property can be used to set the host name. The `ingress.tls` parameter can be used to add the TLS configuration for this host. It is also possible to have more than one host, with a separate TLS configuration for each host. [Learn more about configuring and using Ingress](https://docs.bitnami.com/kubernetes/infrastructure/argo-workflows//configuration/configure-ingress/).
+
+### TLS secrets
+
+The chart also facilitates the creation of TLS secrets for use with the Ingress controller, with different options for certificate management. [Learn more about TLS secrets](https://docs.bitnami.com/kubernetes/infrastructure/argo-workflows/administration/enable-tls-ingress/).
+
+### Additional environment variables
+
+In case you want to add extra environment variables (useful for advanced operations like custom init scripts), you can use the `extraEnvVars` property.
+
+```yaml
+argo-workflows:
+  extraEnvVars:
+    - name: LOG_LEVEL
+      value: error
+```
+
+Alternatively, you can use a ConfigMap or a Secret with the environment variables. To do so, use the `extraEnvVarsCM` or the `extraEnvVarsSecret` values.
+
+### Sidecars
+
+If additional containers are needed in the same pod as argo-workflows (such as additional metrics or logging exporters), they can be defined using the `sidecars` parameter. If these sidecars export extra ports, extra port definitions can be added using the `service.extraPorts` parameter. [Learn more about configuring and using sidecar containers](https://docs.bitnami.com/kubernetes/infrastructure/argo-workflows/configuration/configure-sidecar-init-containers/).
+
+### Pod affinity
+
+This chart allows you to set your custom affinity using the `affinity` parameter. Find more information about Pod affinity in the [kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity).
+
+As an alternative, use one of the preset configurations for pod affinity, pod anti-affinity, and node affinity available at the [bitnami/common](https://github.com/bitnami/charts/tree/master/bitnami/common#affinities) chart. To do so, set the `podAffinityPreset`, `podAntiAffinityPreset`, or `nodeAffinityPreset` parameters.
+
+## Troubleshooting
+
+Find more information about how to deal with common errors related to Bitnami's Helm charts in [this troubleshooting guide](https://docs.bitnami.com/general/how-to/troubleshoot-helm-chart-issues).

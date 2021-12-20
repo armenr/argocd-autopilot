@@ -16,6 +16,16 @@ This REPO is the backbone of our new GitOps approach/flow, AND is the starting p
 2. This repo is incomplete -- mostly a POC turning into an MVP
 3. Have a look at the makefile to get an idea of what's happening here...
 
+If you wanna inspect what's happening in the network, do this:
+
+`kubectl get pod -n kube-system`
+
+Find the pod that's named kinda like this one --> `traefik-6b84f7cbc-2jg5j`
+
+Run this command: `kubectl port-forward traefik-6b84f7cbc-2jg5j -n kube-system 9000:9000`
+
+Go here: http://localhost:9000/dashboard/#/
+
 ### Shit for Brew (lots of goodies in here, explore at will!)
 
 Some of these are required for THIS repo.
@@ -44,6 +54,10 @@ brew install boz/repo/kail
 brew install --cask lens
 brew install yq jq ytt
 ```
+
+Install this - thank me later :)
+
+https://github.com/patrickdappollonio/kubectl-slice
 
 ### Get started
 
