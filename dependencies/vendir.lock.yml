@@ -1,13 +1,35 @@
 apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
-  - git:
-      commitTitle: 'Merge pull request #2 from balchua/master...'
-      sha: 6e64116bc171ee32700b2b0ed7634f08abcb9c0e
-    path: nginx
   - helmChart:
       appVersion: v2.1.0
       version: 2.3.1
     path: loki-stack
   path: deploy/synced
+- contents:
+  - helmChart:
+      appVersion: v3.2.4
+      version: 0.9.3
+    path: argo-workflows
+  - helmChart:
+      appVersion: v2.2.1
+      version: 3.29.3
+    path: argo-cd
+  - helmChart:
+      appVersion: v1.2.1
+      version: 1.6.1
+    path: argocd-notifications
+  - helmChart:
+      appVersion: v0.2.0
+      version: 1.7.0
+    path: argocd-applicationset
+  - helmChart:
+      appVersion: v1.1.0
+      version: 2.6.0
+    path: argo-rollouts
+  - helmChart:
+      appVersion: v1.1.0
+      version: 2.6.0
+    path: argo-events
+  path: deploy/synced/helm-charts
 kind: LockConfig

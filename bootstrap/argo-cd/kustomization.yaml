@@ -7,6 +7,9 @@ resources:
   - https://raw.githubusercontent.com/argoproj-labs/applicationset/v0.2.0/manifests/install.yaml
   - ingress.yaml
 
+patchesStrategicMerge:
+  - service.yaml
+
 configMapGenerator:
   - name: argocd-cm
     behavior: merge
@@ -49,11 +52,12 @@ patches:
         value: default
 
   # reconfigure argo to expose 7070
-  - target:
-      name: argocd-server
-      version: v1
-      kind: Service
-    patch: |-
-      - op: replace
-        path: /spec/ports/0/port
-        value: 7070
+  # - target:
+  #     name: argocd-server
+  #     version: v1
+  #     kind: Service
+  #   patch: |-
+  #     - op: replace
+  #       path: /spec/ports/0/port
+  #       value: 7070
+

@@ -28,7 +28,7 @@ Please keep in mind, I hadn't had much hands-on time with k8s prior to this, so 
 
 ```sh
 brew install k3d argocd argo
-brew install lazygit
+brew install lazygit pre-commit
 brew tap vmware-tanzu/carvel
 brew install vendir
 brew install remake
@@ -39,7 +39,7 @@ brew install helm
 brew install dive
 brew install robscott/tap/kube-capacity
 brew install kubectx
-brew search octant
+brew install octant
 brew install boz/repo/kail
 brew install --cask lens
 brew install yq jq ytt
@@ -68,11 +68,11 @@ To observe what does a "new project/new environment/new application workflow" lo
 
 `argocd-autopilot/examples/demo-app/ -p testing --wait-timeout 2m`
 
-__NOTE:__ Please be CERTAIN to run `git pull` after EVERY `argocd-autopilot` command you run! It very quietly adds shit to your code repo and pushes it for you. 
+__NOTE:__ Please be CERTAIN to run `git pull` after EVERY `argocd-autopilot` command you run! It very quietly adds shit to your code repo and pushes it for you.
 
 So, just to be safe, please pull after each argocd-autopilot command.
 
-Additionally, there's a bug in the argocd-autopilot CLI --> DO NOT USE ANY OF THE REMOVE/DELETE functionality of the CLI tool for argocd-autopilot. 
+Additionally, there's a bug in the argocd-autopilot CLI --> DO NOT USE ANY OF THE REMOVE/DELETE functionality of the CLI tool for argocd-autopilot.
 
 It will nuke things and automatically push them to github that you do NOT want to lose. Just REMOVE the corresponding project file and App files it creates if you want to remove deployments!
 

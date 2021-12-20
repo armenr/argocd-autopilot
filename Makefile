@@ -1,4 +1,3 @@
-# SHELL = bash
 # Recitals
 .ONESHELL:
 .PHONY : \
@@ -9,7 +8,8 @@
     install-cert-manager \
     install-sealed-secrets \
     sealed-secrets-generator-aws \
-    v-manifests v-sync
+    v-manifests \
+	v-sync
 
 # Vars
 CHDIR_SHELL := $(SHELL)
@@ -17,18 +17,11 @@ AWS_ACCESS_KEY_ID := $(aws configure get default.aws_access_key_id)
 AWS_SECRET_ACCESS_KEY := $(aws configure get default.aws_secret_access_key)
 
 define chdir
-   $(eval _D=$(firstword $(1) $(@D)))
-   $(info $(MAKE): cd $(_D)) $(eval SHELL = cd $(_D); $(CHDIR_SHELL))
+	$(eval _D=$(firstword $(1) $(@D)))
+	$(info $(MAKE): cd $(_D)) $(eval SHELL = cd $(_D); $(CHDIR_SHELL))
 endef
 
-# bootstrap argo locally
-argo-bootstrap:
-	$(MAKE) install-cert-manager
-	$(MAKE) install-sealed-secrets
-	$(MAKE) v-sync
-	$(MAKE) v-manifests
-	# @[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
-	# @[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
+argocd-install:
 	kubectl create namespace argocd && \
 	kustomize build bootstrap/argo-cd | kubectl apply -f - &&\
 	kubectl apply -f bootstrap/argo-cd.yaml && kubectl apply -f bootstrap/root.yaml && \
@@ -36,13 +29,45 @@ argo-bootstrap:
 		--from-literal git_username=$GITHUB_USER \
 		--from-literal git-token=$GIT_TOKEN
 
+kustomize-workflows:
+	kubectl create namespace argo && \
+	kustomize build bootstrap/argo-workflows | kubectl apply -f -
+
+argo-workflows-install:
+	kubectl create namespace argo && \
+	helm upgrade --install \
+		argo-workflows argo/argo-workflows \
+		--namespace argo \
+		--create-namespace \
+		--set server.base.href="/workflows/" \
+		--set server.extraArgs="{--auth-mode=server}" \
+		--wait
+
+argo-bootstrap:
+	$(MAKE) install-cert-manager
+	$(MAKE) v-sync
+	$(MAKE) v-manifests
+	$(MAKE) argo-workflows-install
+	$(MAKE) argocd-install
+	# @[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
+	# @[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
+
+# bootstrap argo locally
+argo-bootstrap-old:
+	$(MAKE) install-cert-manager
+	$(MAKE) install-sealed-secrets
+	$(MAKE) v-sync
+	$(MAKE) v-manifests
+	# @[ "$(GITHUB_USER)" ] || $(call log_error, "GITHUB_USER not set!")
+	# @[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
+
 # remove argo and all traces
 argo-deprovision:			# TODO
 	echo "nope!"
 
 # spin up k3s cluser via k3d
 cluster:
-	 k3d cluster create --config k3d_local.yaml
+	k3d cluster create --config ./assets/k3d_local.yaml
 
 # destroy all the things
 destroy:
@@ -81,7 +106,7 @@ sealed-secrets-generate-aws:
 # auto-gen dependent manifests via vendir + YTT
 v-manifests:
 	$(call chdir,dependencies)
-	../scripts/ytt-generate-manifests.sh
+	../assets/scripts/kustomize-generate-manifests.sh
 
 # sync external manifests & charts
 v-sync:
