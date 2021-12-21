@@ -7,6 +7,7 @@
         export GIT_TOKEN=TOKEN
         export GITHUB_USER=USER
         ```
+- If you wanna be really productive, then use VSCode with the included configs and extensions/plugins recommendations I've curated.
 
 NOTES:
 

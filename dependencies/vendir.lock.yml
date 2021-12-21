@@ -11,7 +11,7 @@ directories:
     path: argo-cd
   - helmChart:
       appVersion: v1.2.1
-      version: 1.6.1
+      version: 1.7.0
     path: argocd-notifications
   - helmChart:
       appVersion: v0.2.0
@@ -19,11 +19,11 @@ directories:
     path: argocd-applicationset
   - helmChart:
       appVersion: v1.1.0
-      version: 2.6.0
+      version: 2.7.0
     path: argo-rollouts
   - helmChart:
       appVersion: v1.1.0
-      version: 2.6.0
+      version: 2.7.0
     path: argo-events
   path: deploy/synced/helm-charts
 kind: LockConfig

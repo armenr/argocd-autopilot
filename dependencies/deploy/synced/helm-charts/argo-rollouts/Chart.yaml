@@ -1,6 +1,6 @@
 annotations:
   artifacthub.io/changes: |
-    - "[Added]: Ability to set the type of Service on the dashboard Service"
+    - "[Added]: Support high availability (HA) mode for controller with multiple replicas"
 apiVersion: v2
 appVersion: v1.1.0
 description: A Helm chart for Argo Rollouts
@@ -11,4 +11,4 @@ maintainers:
 - name: dthomson25
 - name: jessesuen
 name: argo-rollouts
-version: 2.6.0
+version: 2.7.0

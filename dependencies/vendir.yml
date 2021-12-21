@@ -22,63 +22,45 @@ directories:
     contents:
       - path: argo-workflows
         helmChart:
-          # which Helm repository to find the desired Helm chart
           repository:
             url: https://charts.bitnami.com/bitnami
-          # the name of the desired Helm chart in the above repository
           name: argo-workflows
-          # the specific version of the above Helm chart
-          version: 0.1.13
+          # version: 0.1.13
 
       - path: argo-cd
         helmChart:
-          # which Helm repository to find the desired Helm chart
           repository:
             url: https://charts.bitnami.com/bitnami
-          # the name of the desired Helm chart in the above repository
           name: argo-cd
-          # the specific version of the above Helm chart
-          version: 2.0.19
+          # version: 2.0.19
 
       - path: argocd-notifications
         helmChart:
-          # which Helm repository to find the desired Helm chart
           repository:
             url: https://argoproj.github.io/argo-helm
-          # the name of the desired Helm chart in the above repository
           name: argocd-notifications
-          # the specific version of the above Helm chart
-          version: 1.6.1
+          # version: 1.6.1
 
       - path: argocd-applicationset
         helmChart:
-          # which Helm repository to find the desired Helm chart
           repository:
             url: https://argoproj.github.io/argo-helm
-          # the name of the desired Helm chart in the above repository
           name: argocd-applicationset
-          # the specific version of the above Helm chart
-          version: 1.7.0
+          # version: 1.7.0
 
       - path: argo-rollouts
         helmChart:
-          # which Helm repository to find the desired Helm chart
           repository:
             url: https://argoproj.github.io/argo-helm
-          # the name of the desired Helm chart in the above repository
           name: argo-rollouts
-          # the specific version of the above Helm chart
-          version: 2.6.0
+          # version: 2.6.0
 
       - path: argo-events
         helmChart:
-          # which Helm repository to find the desired Helm chart
           repository:
             url: https://argoproj.github.io/argo-helm
-          # the name of the desired Helm chart in the above repository
           name: argo-rollouts
-          # the specific version of the above Helm chart
-          version: 2.6.0
+          # version: 2.6.0
 
       # - path: nginx
       #   # retrieve from a Git repostiory
