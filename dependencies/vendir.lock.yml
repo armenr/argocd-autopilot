@@ -25,5 +25,5 @@ directories:
       appVersion: v1.1.0
       version: 2.7.0
     path: argo-events
-  path: deploy/synced/helm-charts
+  path: synced/helm-charts
 kind: LockConfig

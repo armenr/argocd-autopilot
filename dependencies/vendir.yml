@@ -18,7 +18,7 @@ directories:
   #         version: 2.3.1
 
   # This path syncs HELM CHARTS ONLY
-  - path: deploy/synced/helm-charts
+  - path: synced/helm-charts
     contents:
       - path: argo-workflows
         helmChart:
