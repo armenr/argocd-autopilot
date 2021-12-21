@@ -52,7 +52,7 @@ brew install kubectx
 brew install octant
 brew install boz/repo/kail
 brew install --cask lens
-brew install yq jq ytt
+brew install yq jq ytt fx
 ```
 
 Install this - thank me later :)
