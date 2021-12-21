@@ -1,0 +1,45 @@
+## Kapp commands
+
+# renders helm chart from dependencies folder,
+# then pipes rendered template into kapp
+
+helm template \
+        --release-name argo-workflows \
+        --include-crds \
+        --namespace argo \
+        --values dependencies/deploy/helm-chart-values/argo-workflows.yaml \
+        dependencies/deploy/synced/helm-charts/argo-workflows \
+    | kapp deploy \
+        --yes \
+        --app argo-workflows \
+        --namespace argo \
+        --diff-changes \
+        --file -
+
+
+# renders helm chart from git repo,
+# then pipes rendered template into kapp
+
+helm template \
+        --release-name argo-workflows \
+        --include-crds \
+        --namespace argo \
+        --values dependencies/deploy/helm-chart-values/argo-workflows.yaml \
+        --repo https://charts.bitnami.com/bitnami argo-workflows \
+    | kapp deploy \
+        --yes \
+        --app argo-workflows \
+        --namespace argo \
+        --diff-changes \
+        --file -
+
+
+# deletes a kapp app
+
+kapp delete -a argo-workflows -c -n argo
+
+
+# lists all kapp apps
+
+kapp list -A
+
