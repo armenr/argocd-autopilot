@@ -1,1 +1,15 @@
-## I'll be a file someday
+#@ app_name = "argocd"
+#@ namespace = "argo"
+---
+server:
+  url: "/#@ app_name/"
+
+ingress:
+  enabled: true
+  hostname: kubernetes.docker.internal
+  path: /#@ app_name
+  tls: false
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    #@yaml/text-templated-strings
+    traefik.ingress.kubernetes.io/router.middlewares: "(@= namespace@)-(@= app_name@)-prefix@kubernetescrd"

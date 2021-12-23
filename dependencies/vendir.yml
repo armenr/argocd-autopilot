@@ -1,21 +1,9 @@
+---
 apiVersion: vendir.k14s.io/v1alpha1
 kind: Config
 # require a user to use at least version 0.18.0 of vendir
 minimumRequiredVersion: 0.18.0
 directories:
-
-  # this path is the top level directory to place retrieved assets
-  # - path: deploy/synced/manifests
-  #   contents:
-  #     - path: loki-stack
-  #       helmChart:
-  #         # which Helm repository to find the desired Helm chart
-  #         repository:
-  #           url: https://grafana.github.io/helm-charts
-  #         # the name of the desired Helm chart in the above repository
-  #         name: loki-stack
-  #         # the specific version of the above Helm chart
-  #         version: 2.3.1
 
   # This path syncs HELM CHARTS ONLY
   - path: synced/helm-charts
@@ -62,6 +50,34 @@ directories:
           name: argo-rollouts
           # version: 2.6.0
 
+      - path: redis
+        helmChart:
+          repository:
+            url: https://charts.bitnami.com/bitnami
+          name: redis
+          # version: 2.6.0
+
+      - path: rabbitmq
+        helmChart:
+          repository:
+            url: https://charts.bitnami.com/bitnami
+          name: rabbitmq
+          # version: 2.6.0
+
+      - path: mariadb
+        helmChart:
+          repository:
+            url: https://charts.bitnami.com/bitnami
+          name: mariadb
+          # version: 2.6.0
+
+      - path: cert-manager
+        helmChart:
+          repository:
+            url: https://charts.jetstack.io
+          name: cert-manager
+          # version: 2.6.0
+
       # - path: nginx
       #   # retrieve from a Git repostiory
       #   git:
@@ -78,3 +94,17 @@ directories:
       #   # but we'd prefer to have `deploy/synced/nginx/deployment.yaml`, which
       #   # we can have by specifying `newRootPath`
         # newRootPath: content/en/examples/application/
+
+
+  # this path is the top level directory to place retrieved assets
+  # - path: deploy/synced/manifests
+  #   contents:
+  #     - path: loki-stack
+  #       helmChart:
+  #         # which Helm repository to find the desired Helm chart
+  #         repository:
+  #           url: https://grafana.github.io/helm-charts
+  #         # the name of the desired Helm chart in the above repository
+  #         name: loki-stack
+  #         # the specific version of the above Helm chart
+  #         version: 2.3.1

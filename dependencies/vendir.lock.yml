@@ -25,5 +25,21 @@ directories:
       appVersion: v1.1.0
       version: 2.7.0
     path: argo-events
+  - helmChart:
+      appVersion: 6.2.6
+      version: 15.6.7
+    path: redis
+  - helmChart:
+      appVersion: 3.9.11
+      version: 8.24.12
+    path: rabbitmq
+  - helmChart:
+      appVersion: 10.5.13
+      version: 10.1.1
+    path: mariadb
+  - helmChart:
+      appVersion: v1.6.1
+      version: v1.6.1
+    path: cert-manager
   path: synced/helm-charts
 kind: LockConfig

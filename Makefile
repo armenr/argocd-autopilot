@@ -1,5 +1,6 @@
 # Recitals
-.ONESHELL:
+.ONESHELL: kapp-deploy-helm
+
 .PHONY : \
     argo-bootstrap \
     argo-deprovision \
@@ -16,11 +17,24 @@ CHDIR_SHELL := $(SHELL)
 AWS_ACCESS_KEY_ID := $(aws configure get default.aws_access_key_id)
 AWS_SECRET_ACCESS_KEY := $(aws configure get default.aws_secret_access_key)
 CLUSTER_ID := $(whoami)
+EXISTING_NAMESPACES := $(shell kubectl get ns --show-labels | sed 1,1d | cut -d ' ' -f1)
 
 define chdir
 	$(eval _D=$(firstword $(1) $(@D)))
 	$(info $(MAKE): cd $(_D)) $(eval SHELL = cd $(_D); $(CHDIR_SHELL))
 endef
+
+# define check
+
+# Accepts 2 arguments:
+# arg: namespace for install
+# arg2: name-of-chart
+# arg3: --create-namespaces
+# TODO: https://stackoverflow.com/a/49091173
+kapp-deploy-helm:
+	./repo.functions kapp_deploy_helm $(word 2, $(MAKECMDGOALS)) $(word 3, $(MAKECMDGOALS)) $(word 4, $(MAKECMDGOALS)) \
+
+
 
 install-argocd:
 	kubectl create namespace argocd && \
@@ -63,8 +77,8 @@ argo-bootstrap-old:
 	# @[ "$(GIT_TOKEN)" ] || $(call log_error, "GIT_TOKEN not set!")
 
 # remove argo and all traces
-argo-deprovision:			# TODO
-	echo "nope!"
+# argo-deprovision:			# TODO
+# 	echo "nope!"
 
 # spin up k3s cluser via k3d
 cluster:
@@ -115,11 +129,32 @@ v-sync:
 	$(call chdir,dependencies)
 	vendir sync
 
-kapp-deploy-argo-workflows-server:
-	kapp deploy \
-		-a argo-workflows \
-		-n kube-system \
-		-f <'('helm template  --values my-vals.yml')'
+%: @echo Done
+
+# @echo $(filter $(word 3, $(MAKECMDGOALS)), $(EXISTING_NAMESPACES))
+# helm template \
+# 		--release-name $(word 2, $(MAKECMDGOALS)) \
+# 		--include-crds \
+# 		--namespace $(word 3, $(MAKECMDGOALS)) \
+# 		--values dependencies/helm-chart-values/$(word 2, $(MAKECMDGOALS)).yaml \
+# 		dependencies/synced/helm-charts/$(word 2, $(MAKECMDGOALS)) \
+# | if [ -d "dependencies/patches/$(word 2, $(MAKECMDGOALS))/" ]; \
+# 	then \
+# 		ytt \
+# 			-f dependencies/patches/$(word 2, $(MAKECMDGOALS)) \
+# 			-f - ; \
+# 	else \
+# 		tmp_helm_rendered=$$(mktemp -u).yml; \
+# 		helmTemplate=$$(</dev/stdin); \
+# 		echo "$$helmTemplate"; \
+# fi \
+# | kapp deploy \
+# 	--yes \
+# 	--app $(word 2, $(MAKECMDGOALS)) \
+# 	--namespace $(word 3, $(MAKECMDGOALS)) \
+# 	--diff-changes \
+# 	--file -
+
 
 # kapp deploy -n argo -a argo-workflows -f <(kustomize build bootstrap/argo-workflows) --diff-changes
 # kapp deploy -n argo -a argo-workflows -f <(helm template argo-workflows --repo https://argoproj.github.io/argo-helm argo-workflows)
@@ -134,3 +169,54 @@ kapp-deploy-argo-workflows-server:
 # )
 
 # kapp deploy -a argo-workflows -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
+
+
+# kapp-deploy-workflows-server:
+# 	helm template \
+# 			--release-name $@ \
+# 			--include-crds \
+# 			--namespace argo \
+# 			--values dependencies/helm-chart-values/$@.yaml \
+# 			--repo https://charts.bitnami.com/bitnami $@ \
+# 	| if [ -d "dependencies/patches/$@/" ]; \
+# 		then \
+# 			ytt \
+# 				-f dependencies/patches/$@ \
+# 				-f - ; \
+# 		else \
+# 			tmp_helm_rendered=$$(mktemp -u).yml; \
+# 			helmTemplate=$$(</dev/stdin); \
+# 			echo "$$helmTemplate"; \
+# 	fi \
+# 	| kapp deploy \
+# 		--app $@ \
+# 		--namespace argo \
+# 		--diff-changes \
+# 		--file -
+
+
+# kapp-deploy-%:
+
+# 	helm template \
+# 			--release-name $(word 1, $(MAKECMDGOALS)) \
+# 			--include-crds \
+# 			--namespace argo \
+# 			--values dependencies/helm-chart-values/$(word 1, $(MAKECMDGOALS)).yaml \
+# 			--repo https://charts.bitnami.com/bitnami $(word 1, $(MAKECMDGOALS)) \
+# 	| if [ -d "dependencies/patches/$(word 1, $(MAKECMDGOALS))/" ]; \
+# 		then \
+# 			ytt \
+# 				-f dependencies/patches/$(word 1, $(MAKECMDGOALS)) \
+# 				-f - ; \
+# 		else \
+# 			tmp_helm_rendered=$$(mktemp -u).yml; \
+# 			helmTemplate=$$(</dev/stdin); \
+# 			echo "$$helmTemplate"; \
+# 	fi \
+# 	| kapp deploy \
+# 		--app $(word 1, $(MAKECMDGOALS)) \
+# 		--namespace $(word 2, $(MAKECMDGOALS)) \
+# 		--diff-changes \
+# 		--file -
+
+

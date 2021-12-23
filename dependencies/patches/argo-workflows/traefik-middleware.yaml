@@ -1,0 +1,10 @@
+#@ app_name = "argo-workflows"
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: #@ app_name + "-prefix"
+spec:
+  stripPrefix:
+    prefixes:
+      - /#@ app_name/

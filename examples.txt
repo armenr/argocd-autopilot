@@ -17,21 +17,45 @@ helm template \
         --file -
 
 
-# renders helm chart from git repo,
+# renders helm chart from git repo
+# checks if a patch directory exists for the chart
+# pipes that through ytt and applies any patches
+# else returns the generated manifest as-is
 # then pipes rendered template into kapp
 
 helm template \
         --release-name argo-workflows \
         --include-crds \
         --namespace argo \
-        --values dependencies/deploy/helm-chart-values/argo-workflows.yaml \
+        --values dependencies/helm-chart-values/argo-workflows.yaml \
         --repo https://charts.bitnami.com/bitnami argo-workflows \
+    | if [ -d "dependencies/patches/argo-workflows/" ];
+        then \
+          tmp_helm_rendered=$(mktemp -u).yml; \
+          helmTemplate=$(</dev/stdin); \
+          echo $helmTemplate > $tmp_helm_rendered; \
+          ytt -f $tmp_helm_rendered -f dependencies/patches/argo-workflows; \
+        else \
+          helmTemplate=$(</dev/stdin); \
+          return $helmTemplate; \
+      fi \
     | kapp deploy \
         --yes \
         --app argo-workflows \
         --namespace argo \
         --diff-changes \
         --file -
+
+
+    if [ -d "dependencies/patches/argo-workflows/" ] \
+      then \
+        myVar=$(-) \
+        echo $myvar \
+      fi \
+
+ytt -f dependencies/patches/argo-workflows/ -f - \
+    | [ -d "dependencies/patches/argo-workflows/" ] && \
+
 
 
 # deletes a kapp app

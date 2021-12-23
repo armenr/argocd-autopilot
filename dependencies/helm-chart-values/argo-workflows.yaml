@@ -19,8 +19,8 @@ server:
   ## @sub-section server.service
   service:
     type: ClusterIP
-    ports:
-      http: 80
+    # ports:
+    #   http: 80
 
 ## @section ingress
 ingress:
