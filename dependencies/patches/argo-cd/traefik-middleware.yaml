@@ -1,10 +1,8 @@
-#@ app_name = "argocd"
----
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
-  name: #@ app_name + "-prefix"
+  name: argocd-prefix
 spec:
   stripPrefix:
     prefixes:
-      - /#@ app_name/
+      - /argocd/

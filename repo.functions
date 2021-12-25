@@ -5,6 +5,21 @@ function create_local_cluster()
   k3d cluster create local-$1 --config ./assets/k3d_local.yaml
 }
 
+function squash_all()
+{
+  echo -n "!!! This is a DESTRUCTIVE ACTION: Do you wish to merge/squash all prior commits (y/n)? "
+  read answer
+
+  if [ "$answer" != "${answer#[Yy]}" ]; # this grammar (the #[] operator) means that the variable $answer where any Y or y in 1st position will be dropped if they exist.
+  then
+      git reset $(git commit-tree HEAD^{tree} -m "Initial commit...")
+  else
+      echo No
+  fi
+
+
+}
+
 function bootstrap_cluster()
 {
   kapp_deploy_helm argocd argocd --create-namespace
@@ -66,17 +81,19 @@ function generate_helm_patches()
 
 function deploy_kapp()
 {
+  local HELM_CHART_NAMESPACE=$1
+  local HELM_CHART_NAME=$2
+
   kapp deploy \
-    --yes \
-		--app $2 \
 		--namespace $1 \
+		--app $2 \
 		--diff-changes \
-		--file $3
+		--file $3 \
+    --yes
 }
 
 function kapp_deploy_helm()
 {
-
   local HELM_CHART_NAMESPACE=$1
   local HELM_CHART_NAME=$2
   local CREATE_NAMESPACE_FLAG=${3:-false}
@@ -149,8 +166,8 @@ function kapp_deploy_helm()
       "$HELM_CHART_NAMESPACE" \
       "$HELM_CHART_NAME" \
       2>&1 \
-    | generate_helm_patches \     # If no patches - or empty patch dir - this command
-      "$HELM_CHART_NAME" \        # becomes a no-op.
+    | generate_helm_patches \
+      "$HELM_CHART_NAME" \
       - 2>&1 \
     | deploy_kapp \
         "$HELM_CHART_NAMESPACE" \
@@ -166,6 +183,105 @@ function kapp_deploy_helm()
 
   printf "\n|>  ######### ALL DONE #########  <|\n"
 }
+
+
+
+
+
+############################################ GRAVEYARD ############################################
+###################################################################################################
+#
+# function kapp_deploy_kustomize()
+# {
+#   local HELM_CHART_NAMESPACE=$1
+#   local HELM_CHART_NAME=$2
+#   local CREATE_NAMESPACE_FLAG=${3:-false}
+
+#   if [ -z "$HELM_CHART_NAMESPACE" ]; then
+#     printf "\n"
+#     echo "MISSING NAMESPACE ARGUMENT...ABORTING!"
+#     printf "\n"
+
+#   elif [ -z "$HELM_CHART_NAME" ]; then
+#     printf "\n"
+#     echo "MISSING CHART NAME ARGUMENT...ABORTING!"
+#     printf "\n"
+#   fi
+
+#   if [ -z "$HELM_CHART_NAMESPACE" ] || [ -z "$HELM_CHART_NAME" ]; then
+#     echo "You are missing a crucial parameter from your command..."
+#     printf "\n"
+
+#     echo "[Required] Target namespace:    $HELM_CHART_NAMESPACE"
+#     echo "Example - 'argo' or 'kube-system (not recommended...)'"
+#     printf "\n"
+
+#     echo "[Required] Helm chart name:   $HELM_CHART_NAME"
+#     echo "Example - 'argo-workflows'"
+#     printf "\n"
+
+#     echo "[Optional] Create missing namespace?:   $CREATE_NAMESPACE_FLAG"
+#     echo "Example - '--create-namespace'"
+#     kill -INT $$
+
+#     echo "[Optional] Show changeset/diff ?    $CREATE_NAMESPACE_FLAG"
+#     echo "Example - '--show-diff'"
+#     kill -INT $$
+#   fi
+
+#   check_namespace_exists $HELM_CHART_NAMESPACE $CREATE_NAMESPACE_FLAG
+#   if [ ! $? -eq 0 ];
+#   then
+#     if [ $CREATE_NAMESPACE_FLAG = "--create-namespace" ];
+#     then
+#       printf "\n"
+#       echo "Create-namespace flag is set...creating namespace $HELM_CHART_NAMESPACE"
+#       printf "\n"
+#       create_namespace $HELM_CHART_NAMESPACE
+#     else
+#       printf "\n"
+#       echo "  |> Namespace not found & no '--create-namespace' flag provided..."
+#       echo "  |> Will not proceed !!!"
+#       printf "\n"
+#       kill -INT $$
+#     fi
+#   fi
+
+#   printf "\n"
+#   printf "\n|>  ######### SUMMARY #########  <|"
+#   printf "\n"
+#   printf "\n"
+#   echo "|> Target namespace: $HELM_CHART_NAMESPACE"
+#   printf "\n"
+#   echo "|> Helm chart name: $HELM_CHART_NAME"
+#   printf "\n"
+
+#   if [ -d "./dependencies/synced/helm-charts/$HELM_CHART_NAME" ]; then
+#     printf "\n"
+#     echo "Deplyoment in progress..."
+#     printf "\n"
+
+#     generate_helm_manifest \
+#       "$HELM_CHART_NAMESPACE" \
+#       "$HELM_CHART_NAME" \
+#       2>&1 \
+#     | generate_helm_patches \
+#       "$HELM_CHART_NAME" \
+#       - 2>&1 \
+#     | deploy_kapp \
+#         "$HELM_CHART_NAMESPACE" \
+#         "$HELM_CHART_NAME" \
+#         -
+
+#   else
+#     echo "🚨⚠️  There is no synced dependency for chart: $HELM_CHART_NAME"
+#     printf "\n"
+#     echo "📝 👉 Add your chart through vendir, sync it, then try again..."
+#     printf "\n"
+#   fi
+
+#   printf "\n|>  ######### ALL DONE #########  <|\n"
+# }
 
 
 

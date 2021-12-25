@@ -27,7 +27,7 @@ directories:
     path: argo-events
   - helmChart:
       appVersion: 6.2.6
-      version: 15.6.7
+      version: 15.6.8
     path: redis
   - helmChart:
       appVersion: 3.9.11
@@ -38,8 +38,24 @@ directories:
       version: 10.1.1
     path: mariadb
   - helmChart:
+      appVersion: 0.5.2
+      version: 5.10.12
+    path: metrics-server
+  - helmChart:
+      appVersion: 0.1.0
+      version: 3.2.21
+    path: kubewatch
+  - helmChart:
+      appVersion: 2.3.0
+      version: 2.1.19
+    path: kube-state-metrics
+  - helmChart:
       appVersion: v1.6.1
       version: v1.6.1
     path: cert-manager
+  - helmChart:
+      appVersion: 1.88.1
+      version: 1.88.1
+    path: cost-analyzer
   path: synced/helm-charts
 kind: LockConfig

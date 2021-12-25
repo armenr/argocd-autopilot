@@ -3,6 +3,7 @@ controller:
   workflowNamespaces:
     - default
     - argo
+    - argocd
 
 ## @section server
 server:
@@ -14,20 +15,20 @@ server:
   auth:
     enabled: true
     mode: server
-  baseHref: /argo/
+  baseHref: /workflows/
 
   ## @sub-section server.service
   service:
     type: ClusterIP
-    # ports:
-    #   http: 80
+    ports:
+      http: 80
 
 ## @section ingress
 ingress:
   enabled: true
   pathType: ImplementationSpecific
   hostname: kubernetes.docker.internal
-  path: /argo
+  path: /workflows
   tls: false
   selfSigned: false
   extraHosts: []
@@ -38,7 +39,7 @@ ingress:
   ## THESE ARE VERY IMPORTANT, MODIFY THEM CAREFULLY !!
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
-    traefik.ingress.kubernetes.io/router.middlewares: argo-argo-prefix@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: argo-workflows-prefix@kubernetescrd
     # traefik.ingress.kubernetes.io/rewrite-target: /$1
     # ingress.kubernetes.io/rewrite-target: /$1
     # traefik.ingress.kubernetes.io/router.middlewares: argo-workflows-argo-prefix@kubernetescrd

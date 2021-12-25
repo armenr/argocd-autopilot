@@ -83,7 +83,8 @@ argo-bootstrap-old:
 # spin up k3s cluser via k3d
 cluster:
 	k3d cluster create local-$(USER) --config ./assets/k3d_local.yaml
-	$(MAKE) install-cert-manager
+	./repo.functions kapp_deploy_helm argocd argo-cd --create-namespace
+	./repo.functions kapp_deploy_helm argo argo-workflows --create-namespace
 
 # destroy all the things
 destroy:

@@ -22,6 +22,14 @@ directories:
           name: argo-cd
           # version: 2.0.19
 
+      # TODO: Pull this down and nest it with ARGO --> https://raw.githubusercontent.com/argoproj-labs/rollout-extension/v0.1.0/manifests/install.yaml
+      # - path: argo-cd
+      #   helmChart:
+      #     repository:
+      #       url: https://charts.bitnami.com/bitnami
+      #     name: argo-cd
+      #     # version: 2.0.19
+
       - path: argocd-notifications
         helmChart:
           repository:
@@ -71,12 +79,39 @@ directories:
           name: mariadb
           # version: 2.6.0
 
+      - path: metrics-server
+        helmChart:
+          repository:
+            url: https://charts.bitnami.com/bitnami
+          name: metrics-server
+          # version: 2.6.0
+
+      - path: kubewatch
+        helmChart:
+          repository:
+            url: https://charts.bitnami.com/bitnami
+          name: kubewatch
+          # version: 2.6.0
+
+      - path: kube-state-metrics
+        helmChart:
+          repository:
+            url: https://charts.bitnami.com/bitnami
+          name: kube-state-metrics
+          # version: 2.6.0
+
       - path: cert-manager
         helmChart:
           repository:
             url: https://charts.jetstack.io
           name: cert-manager
           # version: 2.6.0
+
+      - path: cost-analyzer
+        helmChart:
+          repository:
+            url: https://kubecost.github.io/cost-analyzer/
+          name: cost-analyzer
 
       # - path: nginx
       #   # retrieve from a Git repostiory
@@ -94,7 +129,6 @@ directories:
       #   # but we'd prefer to have `deploy/synced/nginx/deployment.yaml`, which
       #   # we can have by specifying `newRootPath`
         # newRootPath: content/en/examples/application/
-
 
   # this path is the top level directory to place retrieved assets
   # - path: deploy/synced/manifests
