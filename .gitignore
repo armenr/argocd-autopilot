@@ -3,3 +3,4 @@
 **/*/*.log
 **/**/.DS_STORE
 **/**/token.yaml
+dependencies/**/synthesized.yaml
