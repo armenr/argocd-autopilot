@@ -1,144 +1,145 @@
----
+# !!! WARNING: Any changes or new files to ANY vendir-managed directory or path  #
+# !!!          will be overwritten or destroyed on the next `vendir sync`        #
+# !!! ############################################################################
 apiVersion: vendir.k14s.io/v1alpha1
 kind: Config
-# require a user to use at least version 0.18.0 of vendir
 minimumRequiredVersion: 0.18.0
+
 directories:
 
-  # This path syncs HELM CHARTS ONLY
-  - path: synced/helm-charts
-    contents:
-      - path: argo-workflows
-        helmChart:
-          repository:
-            url: https://charts.bitnami.com/bitnami
-          name: argo-workflows
-          # version: 0.1.13
+# Cert-Manager
+- path: cert-manager/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: cert-manager
+      repository:
+        url: https://charts.jetstack.io
+    # version: 1.6.1
 
-      - path: argo-cd
-        helmChart:
-          repository:
-            url: https://charts.bitnami.com/bitnami
-          name: argo-cd
-          # version: 2.0.19
+# Argo-CD Synced assets
+- path: argo-cd/synced/
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: argo-cd
+      repository:
+        url: https://charts.bitnami.com/bitnami
+  - path: extension-ui-rollouts
+    git:
+      url: https://github.com/argoproj-labs/rollout-extension
+      # branch, tag, commit; origin is the name of the remote (required)
+      # optional if refSelection is specified (available in v0.11.0+)
+      ref: origin/master
+    includePaths:
+    - manifests/**/*
 
-      # TODO: Pull this down and nest it with ARGO --> https://raw.githubusercontent.com/argoproj-labs/rollout-extension/v0.1.0/manifests/install.yaml
-      # - path: argo-cd
-      #   helmChart:
-      #     repository:
-      #       url: https://charts.bitnami.com/bitnami
-      #     name: argo-cd
-      #     # version: 2.0.19
+# Argo-CD notifications
+- path: argocd-notifications/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: argocd-notifications
+      repository:
+        url: https://argoproj.github.io/argo-helm
+    # version: 1.6.1
 
-      - path: argocd-notifications
-        helmChart:
-          repository:
-            url: https://argoproj.github.io/argo-helm
-          name: argocd-notifications
-          # version: 1.6.1
+# Argo-CD ApplicationSets
+- path: argocd-applicationset/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: argocd-applicationset
+      repository:
+        url: https://argoproj.github.io/argo-helm
+    # version: 1.6.1
 
-      - path: argocd-applicationset
-        helmChart:
-          repository:
-            url: https://argoproj.github.io/argo-helm
-          name: argocd-applicationset
-          # version: 1.7.0
+# Argo Rollouts
+- path: argo-rollouts/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: argo-rollouts
+      repository:
+        url: https://argoproj.github.io/argo-helm
+    # version: 1.6.1
 
-      - path: argo-rollouts
-        helmChart:
-          repository:
-            url: https://argoproj.github.io/argo-helm
-          name: argo-rollouts
-          # version: 2.6.0
+# Argo Events
+- path: argo-events/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: argo-events
+      repository:
+        url: https://argoproj.github.io/argo-helm
+    # version: 1.6.1
 
-      - path: argo-events
-        helmChart:
-          repository:
-            url: https://argoproj.github.io/argo-helm
-          name: argo-rollouts
-          # version: 2.6.0
+# Redis
+- path: redis/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: redis
+      repository:
+        url: https://charts.bitnami.com/bitnami
+    # version: 1.6.1
 
-      - path: redis
-        helmChart:
-          repository:
-            url: https://charts.bitnami.com/bitnami
-          name: redis
-          # version: 2.6.0
+# RabbitMQ
+- path: rabbitmq/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: rabbitmq
+      repository:
+        url: https://charts.bitnami.com/bitnami
+    # version: 1.6.1
 
-      - path: rabbitmq
-        helmChart:
-          repository:
-            url: https://charts.bitnami.com/bitnami
-          name: rabbitmq
-          # version: 2.6.0
+# MariaDB
+- path: mariadb/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: mariadb
+      repository:
+        url: https://charts.bitnami.com/bitnami
+    # version: 1.6.1
 
-      - path: mariadb
-        helmChart:
-          repository:
-            url: https://charts.bitnami.com/bitnami
-          name: mariadb
-          # version: 2.6.0
+# metrics-server
+- path: metrics-server/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: metrics-server
+      repository:
+        url: https://charts.bitnami.com/bitnami
+    # version: 1.6.1
 
-      - path: metrics-server
-        helmChart:
-          repository:
-            url: https://charts.bitnami.com/bitnami
-          name: metrics-server
-          # version: 2.6.0
+# kube-watch
+- path: kubewatch/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: kubewatch
+      repository:
+        url: https://charts.bitnami.com/bitnami
+    # version: 1.6.1
 
-      - path: kubewatch
-        helmChart:
-          repository:
-            url: https://charts.bitnami.com/bitnami
-          name: kubewatch
-          # version: 2.6.0
+# kube-state-metrics
+- path: kube-state-metrics/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: kube-state-metrics
+      repository:
+        url: https://charts.bitnami.com/bitnami
+    # version: 1.6.1
 
-      - path: kube-state-metrics
-        helmChart:
-          repository:
-            url: https://charts.bitnami.com/bitnami
-          name: kube-state-metrics
-          # version: 2.6.0
-
-      - path: cert-manager
-        helmChart:
-          repository:
-            url: https://charts.jetstack.io
-          name: cert-manager
-          # version: 2.6.0
-
-      - path: cost-analyzer
-        helmChart:
-          repository:
-            url: https://kubecost.github.io/cost-analyzer/
-          name: cost-analyzer
-
-      # - path: nginx
-      #   # retrieve from a Git repostiory
-      #   git:
-      #     # the path to a valid Git repository
-      #     url: https://github.com/ktsakalozos/SimpleProject
-      #     # ref can be a branch, tag, or commit SHA
-      #     ref: master
-      #   # by default all files are fetched, but we only want the
-      #   # `deployment.yaml` file, so let vendir know
-      #   includePaths:
-      #     - deploy/nginx.yaml
-      #   # by default, vendir would download the above included path to
-      #   # `deploy/synced/nginx/content/en/examples/application/deployment.yaml`,
-      #   # but we'd prefer to have `deploy/synced/nginx/deployment.yaml`, which
-      #   # we can have by specifying `newRootPath`
-        # newRootPath: content/en/examples/application/
-
-  # this path is the top level directory to place retrieved assets
-  # - path: deploy/synced/manifests
-  #   contents:
-  #     - path: loki-stack
-  #       helmChart:
-  #         # which Helm repository to find the desired Helm chart
-  #         repository:
-  #           url: https://grafana.github.io/helm-charts
-  #         # the name of the desired Helm chart in the above repository
-  #         name: loki-stack
-  #         # the specific version of the above Helm chart
-  #         version: 2.3.1
+# cost-analyzer
+- path: cost-analyzer/synced
+  contents:
+  - path: helm-chart
+    helmChart:
+      name: cost-analyzer
+      repository:
+        url: https://kubecost.github.io/cost-analyzer/
+    # version: 1.6.1
